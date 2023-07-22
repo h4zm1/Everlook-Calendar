@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width">
+    <title>JS Bin</title>
+    <script src="https://unpkg.com/htmx.org@1.5.0"></script>
+    <script src="https://unpkg.com/htmx.org@1.4.1/dist/ext/client-side-templates.js"></script>
+    <script src="https://unpkg.com/mustache@latest"></script>
+    <link rel="stylesheet" href="everStyle.css">
+
+</head>
+<body>
+<div hx-ext="client-side-templates">
+    <!--    <button hx-get="/api/users"-->
+    <button hx-get="api/users"
+            hx-swap="innerHTML"
+            hx-target="#content"
+            mustache-template="foo">
+        Click Me
+    </button>
+
+    <p id="content">Start</p>
+
+    <template id="foo">
+        {{#.}}
+        <li>{{name}}</li>
+        {{/.}}
+        <p>{{userID}} and {{id}} and {{name}} and {{location}}</p>
+    </template>
+</div>
+
+
+<div id="wrapper">
+    <div style="text-align: center; margin-top: 10px;">
+        <h1 style="font-weight: bold;">Everlook Calendar</h1><br/>
+        <div hx-get="api/time"
+             hx-trigger="load, every 2s"
+             hx-target="#time">
+        </div>
+        <div id="block_container">
+            <div> Server time is now:</div>
+            <div style="margin-left: 10px" id="time">22:15</div>
+        </div>
+
+    </div>
+    <div hx-ext="client-side-templates"
+         style="float: left; margin-top: 20px;margin-left: 20px;width: 100%;"
+         hx-get="api/event"
+         hx-trigger="load"
+         hx-target="#event"
+         mustache-template="eventTemp"
+         hx-swap="innerHTML">
+
+
+        <p id="event">Start</p>
+
+        <template id="eventTemp">
+
+            {{#old}}
+            <div class="row old">
+                <div class="date">
+                    <span class="dayname">Tue</span> {{date}}
+                </div>
+                <div class="dot"></div>
+                <div class="trail"></div>
+                {{#ony}}
+                <div class="subject">Onyxia</div>
+                {{/ony}}
+                {{#mc}}
+                <div class="subject">Molten Core</div>
+                {{/mc}}
+                {{#bwl}}
+                <div class="subject">BlackWing lair</div>
+                {{/bwl}}
+                {{#zg}}
+                <div class="subject">Zulgurub</div>
+                {{/zg}}
+                {{#dmf}}
+                <div class="subject">DArkmoon fair</div>
+                {{/dmf}}
+
+            </div>
+
+            {{/old}}
+            {{^old}}
+            <div class="row">
+                <div class="date">
+                    <span class="dayname">Tue</span> {{date}}
+                </div>
+                <div class="dot"></div>
+                <div class="trail"></div>
+                {{#ony}}
+                <div class="subject">Onyxia</div>
+                {{/ony}}
+                {{#mc}}
+                <div class="subject">Molten Core</div>
+                {{/mc}}
+                {{#bwl}}
+                <div class="subject">BlackWing lair</div>
+                {{/bwl}}
+                {{#zg}}
+                <div class="subject">Zul'Gurub</div>
+                {{/zg}}
+                {{#dmf}}
+                <div class="subject">DArkmoon faire</div>
+                {{/dmf}}
+
+            </div>
+            {{/old}}
+        </template>
+    </div>
+
+    <!--    <div style="float: left; margin-top: 20px;margin-left: 20px;width: 100%;">-->
+    <!--        <div class="row old">-->
+    <!--            <div class="date">-->
+    <!--                <span class="dayname">Tue</span> 2018-03-06 10:00-->
+    <!--            </div>-->
+    <!--            <div class="dot"></div>-->
+    <!--            <div class="trail"></div>-->
+    <!--            <div class="subject">Onyxia</div>-->
+    <!--        </div>-->
+    <!--        <div class="row old">-->
+    <!--            <div class="date">-->
+    <!--                <span class="dayname">Tue</span> 2018-03-06 10:00-->
+    <!--            </div>-->
+    <!--            <div class="dot"></div>-->
+    <!--            <div class="trail"></div>-->
+    <!--            <div class="subject">Onyxia</div>-->
+    <!--        </div>-->
+    <!--        <div class="row old">-->
+    <!--            <div class="date">-->
+    <!--                <span class="dayname">Tue</span> 2018-03-06 10:00-->
+    <!--            </div>-->
+    <!--            <div class="dot"></div>-->
+    <!--            <div class="trail"></div>-->
+    <!--            <div class="subject">Onyxia</div>-->
+    <!--        </div>-->
+
+    <!--        <div class="row ">-->
+    <!--            <div class="date">-->
+    <!--                <span class="dayname">Sat</span> 2018-03-10 10:00-->
+    <!--            </div>-->
+    <!--            <div class="dot"></div>-->
+    <!--            <div class="trail"></div>-->
+    <!--            <div class="subject">Zul'Gurub</div>-->
+    <!--            <div class="subject">AQ20</div>-->
+    <!--        </div>-->
+    <!--    </div>-->
+</div>
+</body>
+</html>
