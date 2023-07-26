@@ -68,7 +68,7 @@ a:hover {
     width: calc(100% - 80px);
     max-width: 800px;
 }
-#block_container {
+.block_container {
     display: flex;
     justify-content: center;
 }

@@ -1,12 +1,13 @@
 <!DOCTYPE html>
-<html>
+<html xmlns:htmx="http://www.w3.org/1999/xhtml"
+      xmlns:hx="https://github.com/wimdeblauwe/htmx-spring-boot-thymeleaf">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width">
     <title>JS Bin</title>
     <script src="https://unpkg.com/htmx.org@1.5.0"></script>
     <script src="https://unpkg.com/htmx.org@1.4.1/dist/ext/client-side-templates.js"></script>
-    <script src="https://unpkg.com/mustache@latest"></script>
+    <script src="https://unpkg.com/mustache@4.2.0"></script>
     <link rel="stylesheet" href="everStyle.css">
 
 </head>
@@ -31,6 +32,15 @@
 </div>
 
 
+<!--<div hx-ext="client-side-templates"-->
+<!--     style="float: left; margin-top: 20px;margin-left: 20px;width: 100%;"-->
+<!--     hx-get="api/events"-->
+<!--     hx-trigger="load"-->
+<!--     hx-target="#event"-->
+<!--     mustache-template="eventTemp"-->
+<!--     hx-swap="innerHTML">-->
+
+
 <div id="wrapper">
     <div style="text-align: center; margin-top: 10px;">
         <h1 style="font-weight: bold;">Everlook Calendar</h1><br/>
@@ -38,15 +48,24 @@
              hx-trigger="load, every 2s"
              hx-target="#time">
         </div>
-        <div id="block_container">
+        <div class="block_container" style="margin-bottom: 20px">
             <div> Server time is now:</div>
             <div style="margin-left: 10px" id="time">22:15</div>
+        </div>
+        <div hx-get="api/zgboss"
+             hx-trigger="load"
+             hx-target="#boss">
+        </div>
+        <div class="block_container" style="margin-bottom: 20px">
+
+            <b style="font-weight: bold; margin-right: 10px;">Current ZG Edge of Madness boss:</b>
+            <div id="boss">Wushoolay</div>
         </div>
 
     </div>
     <div hx-ext="client-side-templates"
          style="float: left; margin-top: 20px;margin-left: 20px;width: 100%;"
-         hx-get="api/event"
+         hx-get="api/events"
          hx-trigger="load"
          hx-target="#event"
          mustache-template="eventTemp"
@@ -56,11 +75,13 @@
         <p id="event">Start</p>
 
         <template id="eventTemp">
-
+            <!--this to iterate over the whole json list-->
+            {{#.}}
+            <!--if it's old-->
             {{#old}}
             <div class="row old">
                 <div class="date">
-                    <span class="dayname">Tue</span> {{date}}
+                    {{date}}
                 </div>
                 <div class="dot"></div>
                 <div class="trail"></div>
@@ -71,22 +92,27 @@
                 <div class="subject">Molten Core</div>
                 {{/mc}}
                 {{#bwl}}
-                <div class="subject">BlackWing lair</div>
+                <div class="subject">Blackwing Lair</div>
                 {{/bwl}}
                 {{#zg}}
-                <div class="subject">Zulgurub</div>
+                <div class="subject">Zul'Gurub</div>
                 {{/zg}}
                 {{#dmf}}
                 <div class="subject">DArkmoon fair</div>
                 {{/dmf}}
-
+                {{#pvp}}
+                <div class="subject">{{pvp}}</div>
+                {{/pvp}}
+                {{#madness}}
+                <dib class="subject">ZG Edge of Madness: {{madnessBoss}}</dib>
+                {{/madness}}
             </div>
-
             {{/old}}
+            <!--if it's incoming (old is false/0)-->
             {{^old}}
             <div class="row">
                 <div class="date">
-                    <span class="dayname">Tue</span> {{date}}
+                    {{date}}
                 </div>
                 <div class="dot"></div>
                 <div class="trail"></div>
@@ -97,7 +123,7 @@
                 <div class="subject">Molten Core</div>
                 {{/mc}}
                 {{#bwl}}
-                <div class="subject">BlackWing lair</div>
+                <div class="subject">Blackwing Lair</div>
                 {{/bwl}}
                 {{#zg}}
                 <div class="subject">Zul'Gurub</div>
@@ -105,48 +131,17 @@
                 {{#dmf}}
                 <div class="subject">DArkmoon faire</div>
                 {{/dmf}}
-
+                {{#pvp}}
+                <div class="subject">{{pvp}}</div>
+                {{/pvp}}
+                {{#madness}}
+                <dib class="subject">ZG Edge of Madness: {{madnessBoss}}</dib>
+                {{/madness}}
             </div>
             {{/old}}
+            {{/.}}
         </template>
     </div>
-
-    <!--    <div style="float: left; margin-top: 20px;margin-left: 20px;width: 100%;">-->
-    <!--        <div class="row old">-->
-    <!--            <div class="date">-->
-    <!--                <span class="dayname">Tue</span> 2018-03-06 10:00-->
-    <!--            </div>-->
-    <!--            <div class="dot"></div>-->
-    <!--            <div class="trail"></div>-->
-    <!--            <div class="subject">Onyxia</div>-->
-    <!--        </div>-->
-    <!--        <div class="row old">-->
-    <!--            <div class="date">-->
-    <!--                <span class="dayname">Tue</span> 2018-03-06 10:00-->
-    <!--            </div>-->
-    <!--            <div class="dot"></div>-->
-    <!--            <div class="trail"></div>-->
-    <!--            <div class="subject">Onyxia</div>-->
-    <!--        </div>-->
-    <!--        <div class="row old">-->
-    <!--            <div class="date">-->
-    <!--                <span class="dayname">Tue</span> 2018-03-06 10:00-->
-    <!--            </div>-->
-    <!--            <div class="dot"></div>-->
-    <!--            <div class="trail"></div>-->
-    <!--            <div class="subject">Onyxia</div>-->
-    <!--        </div>-->
-
-    <!--        <div class="row ">-->
-    <!--            <div class="date">-->
-    <!--                <span class="dayname">Sat</span> 2018-03-10 10:00-->
-    <!--            </div>-->
-    <!--            <div class="dot"></div>-->
-    <!--            <div class="trail"></div>-->
-    <!--            <div class="subject">Zul'Gurub</div>-->
-    <!--            <div class="subject">AQ20</div>-->
-    <!--        </div>-->
-    <!--    </div>-->
 </div>
 </body>
 </html>
