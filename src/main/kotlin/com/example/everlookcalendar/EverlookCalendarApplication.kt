@@ -21,28 +21,7 @@ fun main(args: Array<String>) {
 }
 
 @RestController
-class DemoController {
-    @GetMapping("/hello")
-    fun hello(): String {
-        return "Hello mom"
-    }
-
-    @GetMapping("/api/users")
-    fun getUsers(): List<User> {
-//        return listOf(
-//                User("John Doe", "john.doe@example.com"),
-//                User("Jane Doe", "jane.doe@example.com")
-//        )
-        return userList
-    }
-
-    @PostMapping("/api/validateName")
-    fun validateUserName(@RequestParam name: String): String {
-        println(name)
-//        Thread.sleep(5000)
-        return if (name.length < 3) "Invalid input" else "ggggggggg"
-    }
-
+class RaidController {
     @GetMapping("/api/time")
     fun getTime(): String {
 //        return listOf(
@@ -115,31 +94,4 @@ fun getPvpString(value: String): String {
     else
         return value.substring(0, value.length - 1).uppercase() + " weekend ends"
 
-}
-
-@Controller
-@RequestMapping("/")
-class HomeController {
-    @GetMapping
-    fun home(model: Model): String {
-        model.addAttribute("users", userList)
-        return "home"
-    }
-}
-
-@Controller
-@RequestMapping("/views/users")
-class UserViewController {
-    //    @GetMapping("/test")
-//    @HxRequest
-//    fun userList(model: Model): String {
-//        model.addAttribute("users", userList)
-//        return "test"
-//    }
-    @GetMapping("/frontend")
-//    @HxRequest
-    fun userList(model: Model): List<User> {
-//        model.addAttribute("users", userList)
-        return userList
-    }
 }

@@ -12,33 +12,27 @@
 
 </head>
 <body>
-<div hx-ext="client-side-templates">
-    <!--    <button hx-get="/api/users"-->
-    <button hx-get="api/users"
-            hx-swap="innerHTML"
-            hx-target="#content"
-            mustache-template="foo">
-        Click Me
-    </button>
-
-    <p id="content">Start</p>
-
-    <template id="foo">
-        {{#.}}
-        <li>{{name}}</li>
-        {{/.}}
-        <p>{{userID}} and {{id}} and {{name}} and {{location}}</p>
-    </template>
+<div style="font-size: 15px">
+    Originally designed by nostalrius
 </div>
+<!--<div hx-ext="client-side-templates">-->
+<!--    &lt;!&ndash;    <button hx-get="/api/users"&ndash;&gt;-->
+<!--    <button hx-get="api/users"-->
+<!--            hx-swap="innerHTML"-->
+<!--            hx-target="#content"-->
+<!--            mustache-template="foo">-->
+<!--        Click Me-->
+<!--    </button>-->
 
+<!--    <p id="content">Start</p>-->
 
-<!--<div hx-ext="client-side-templates"-->
-<!--     style="float: left; margin-top: 20px;margin-left: 20px;width: 100%;"-->
-<!--     hx-get="api/events"-->
-<!--     hx-trigger="load"-->
-<!--     hx-target="#event"-->
-<!--     mustache-template="eventTemp"-->
-<!--     hx-swap="innerHTML">-->
+<!--    <template id="foo">-->
+<!--        {{#.}}-->
+<!--        <li>{{name}}</li>-->
+<!--        {{/.}}-->
+<!--        <p>{{userID}} and {{id}} and {{name}} and {{location}}</p>-->
+<!--    </template>-->
+<!--</div>-->
 
 
 <div id="wrapper">
@@ -61,7 +55,7 @@
             <b style="font-weight: bold; margin-right: 10px;">Current ZG Edge of Madness boss:</b>
             <div id="boss">Wushoolay</div>
         </div>
-
+        <a href="/zgenchants.html">Click here for ZG enchants</a>
     </div>
     <div hx-ext="client-side-templates"
          style="float: left; margin-top: 20px;margin-left: 20px;width: 100%;"
