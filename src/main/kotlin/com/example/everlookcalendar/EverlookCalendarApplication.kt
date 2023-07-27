@@ -24,10 +24,6 @@ fun main(args: Array<String>) {
 class RaidController {
     @GetMapping("/api/time")
     fun getTime(): String {
-//        return listOf(
-//                User("John Doe", "john.doe@example.com"),
-//                User("Jane Doe", "jane.doe@example.com")
-//        )
         val currentTime = LocalTime.now().minusHours(1)
         val formatter = DateTimeFormatter.ofPattern("hh:mm a")
         return currentTime.format(formatter)
