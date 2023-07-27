@@ -20,8 +20,22 @@ fun main(args: Array<String>) {
     runApplication<EverlookCalendarApplication>(*args)
 }
 
+@Controller
+class mainController{
+    @GetMapping
+    @RequestMapping("/")
+    fun home(model: Model): String {
+        return "raidtime"
+    }
+    @GetMapping
+    @RequestMapping("/zgenchants")
+    fun enchants(model: Model): String {
+        return "zgenchants"
+    }
+}
 @RestController
 class RaidController {
+
     @GetMapping("/api/time")
     fun getTime(): String {
         val currentTime = LocalTime.now().minusHours(1)
