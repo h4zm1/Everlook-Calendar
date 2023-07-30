@@ -25,6 +25,7 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-thymeleaf")
     developmentOnly("org.springframework.boot:spring-boot-devtools")
     implementation("io.github.wimdeblauwe:htmx-spring-boot-thymeleaf:2.0.1")
+    implementation("org.springframework.boot:spring-boot-starter-webflux:3.1.2")
     testImplementation("org.springframework.boot:spring-boot-starter-test")
 }
 

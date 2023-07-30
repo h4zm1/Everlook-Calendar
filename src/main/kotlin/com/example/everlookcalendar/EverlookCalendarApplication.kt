@@ -3,15 +3,23 @@ package com.example.everlookcalendar
 import io.github.wimdeblauwe.hsbt.mvc.HxRequest
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.runApplication
+import org.springframework.http.MediaType.*
+import org.springframework.http.codec.ServerSentEvent
+import org.springframework.scheduling.annotation.EnableScheduling
 import org.springframework.stereotype.Controller
 import org.springframework.ui.Model
 import org.springframework.web.bind.annotation.*
-import java.text.SimpleDateFormat
+import org.springframework.web.servlet.function.ServerResponse.SseBuilder
+import org.springframework.web.servlet.mvc.method.annotation.SseEmitter
+import org.springframework.web.servlet.mvc.method.annotation.SseEmitter.event
+import reactor.core.publisher.Flux
+import java.time.Duration
 import java.time.LocalDate
 import java.time.LocalTime
 import java.time.format.DateTimeFormatter
 import java.time.format.TextStyle
 import java.util.*
+
 
 @SpringBootApplication
 class EverlookCalendarApplication
@@ -21,27 +29,52 @@ fun main(args: Array<String>) {
 }
 
 @Controller
-class mainController{
+class mainController {
     @GetMapping
     @RequestMapping("/")
     fun home(model: Model): String {
         return "raidtime"
     }
+
     @GetMapping
     @RequestMapping("/zgenchants")
     fun enchants(model: Model): String {
         return "zgenchants"
     }
 }
+
+@EnableScheduling
 @RestController
 class RaidController {
 
-    @GetMapping("/api/time")
-    fun getTime(): String {
+    @GetMapping("/api/time", produces = [TEXT_EVENT_STREAM_VALUE])
+    fun getOrderStatus(): SseEmitter {
         val currentTime = LocalTime.now().minusHours(1)
         val formatter = DateTimeFormatter.ofPattern("hh:mm a")
-        return currentTime.format(formatter)
+        val sseEmitter = SseEmitter()
+        sseEmitter.send(event().name("message").data(currentTime.format(formatter), TEXT_EVENT_STREAM))
+        sseEmitter.onError { println("error") }
+        sseEmitter.onTimeout {
+            sseEmitter.complete()
+        }
+        return sseEmitter
     }
+
+    // TODO: DELETE
+    // For streaming!!!
+    @GetMapping("/api/time22", produces = [TEXT_EVENT_STREAM_VALUE])
+    fun streamEvents(): Flux<ServerSentEvent<String?>?>? {
+        val currentTime = LocalTime.now().minusHours(1)
+        val formatter = DateTimeFormatter.ofPattern("hh:mm a")
+        return Flux.interval(Duration.ofSeconds(1))
+                .map {
+                    ServerSentEvent.builder<String>()
+                            .event("message")
+                            .data(currentTime.format(formatter))
+                            .build()
+                }
+    }
+
 
     @GetMapping("/api/zgboss")
     fun getZgBoss(): String {

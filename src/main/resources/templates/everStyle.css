@@ -68,7 +68,17 @@ a:hover {
     width: calc(100% - 80px);
     max-width: 800px;
 }
+
 .block_container {
-    display: flex;
     justify-content: center;
+    display:flex;
+    flex-wrap: wrap;
+}
+
+.text-box {
+    color: #fff;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
 }

@@ -5,58 +5,39 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width">
     <title>JS Bin</title>
-    <script src="https://unpkg.com/htmx.org@1.5.0"></script>
+    <script src="https://unpkg.com/htmx.org@1.9.4"></script>
     <script src="https://unpkg.com/htmx.org@1.4.1/dist/ext/client-side-templates.js"></script>
     <script src="https://unpkg.com/mustache@4.2.0"></script>
+    <script src="https://unpkg.com/htmx.org/dist/ext/sse.js"></script>
     <link rel="stylesheet" href="everStyle.css">
 
 </head>
 <body>
-<div style="font-size: 15px">
+<div style="font-size: 10px">
     Originally designed by nostalrius
 </div>
-<!--<div hx-ext="client-side-templates">-->
-<!--    &lt;!&ndash;    <button hx-get="/api/users"&ndash;&gt;-->
-<!--    <button hx-get="api/users"-->
-<!--            hx-swap="innerHTML"-->
-<!--            hx-target="#content"-->
-<!--            mustache-template="foo">-->
-<!--        Click Me-->
-<!--    </button>-->
-
-<!--    <p id="content">Start</p>-->
-
-<!--    <template id="foo">-->
-<!--        {{#.}}-->
-<!--        <li>{{name}}</li>-->
-<!--        {{/.}}-->
-<!--        <p>{{userID}} and {{id}} and {{name}} and {{location}}</p>-->
-<!--    </template>-->
-<!--</div>-->
-
-
-<div id="wrapper">
-    <div style="text-align: center; margin-top: 10px;">
-        <h1 style="font-weight: bold;">Everlook Calendar</h1><br/>
-        <div hx-get="api/time"
-             hx-trigger="load, every 2s"
-             hx-target="#time">
+<div style="text-align: center; margin-top: 10px;">
+    <h1 style="font-weight: bold;text-align: center">Everlook Calendar</h1><br/>
+    <div class="block_container" style="margin-bottom: 20px">
+        <div> Server time is now:</div>
+        <div hx-ext="sse" sse-connect="/api/time" sse-swap="message"
+             style="margin-left: 7px" id="time">22:15
         </div>
-        <div class="block_container" style="margin-bottom: 20px">
-            <div> Server time is now:</div>
-            <div style="margin-left: 10px" id="time">22:15</div>
-        </div>
-        <div hx-get="api/zgboss"
-             hx-trigger="load"
-             hx-target="#boss">
-        </div>
-        <div class="block_container" style="margin-bottom: 20px">
-
-            <b style="font-weight: bold; margin-right: 10px;">Current ZG Edge of Madness boss:</b>
-            <div id="boss">Wushoolay</div>
-        </div>
-        <a href="/zgenchants">Click here for ZG enchants</a>
     </div>
+    <div hx-get="api/zgboss"
+         hx-trigger="load"
+         hx-target="#boss">
+    </div>
+    <div class="block_container" style="margin-bottom: 20px">
+        <b style="font-weight: bold; margin-right: 7px;">Current ZG Edge of Madness boss:</b>
+        <div id="boss">Wushoolay</div>
+    </div>
+
+
+    <a href="/zgenchants">Click here for ZG enchants</a>
+</div>
+<div id="wrapper">
+
     <div hx-ext="client-side-templates"
          style="float: left; margin-top: 20px;margin-left: 20px;width: 100%;"
          hx-get="api/events"
@@ -66,7 +47,7 @@
          hx-swap="innerHTML">
 
 
-        <p id="event">Start</p>
+        <p id="event"></p>
 
         <template id="eventTemp">
             <!--this to iterate over the whole json list-->
