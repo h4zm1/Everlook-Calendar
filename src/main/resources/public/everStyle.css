@@ -31,14 +31,14 @@
 
 .row {
     position: relative;
-    width: 240px;
+    width: 213px;
     padding: 25px 0 25px 213px;
     margin: 0 auto;
 }
 
 .date {
     position: absolute;
-    right: 280px;
+    right: 260px;
     top: 25px;
 }
 
@@ -68,7 +68,43 @@ a:hover {
     width: calc(100% - 80px);
     max-width: 800px;
 }
+
 .block_container {
-    display: flex;
     justify-content: center;
+    display:flex;
+    flex-wrap: wrap;
+}
+
+.text-box {
+    color: #fff;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+.topText {
+    margin-top: 10px;
+    text-align: center;
+}
+@media only screen and (max-width:518px)
+{
+    .topText {
+        position: relative;
+        width: 400px;
+        margin-top: 10px;
+        padding: 25px 0 0 50px;
+    }
+    .row {
+        position: relative;
+        width: 240px;
+        padding: 25px 0 25px 213px;
+        margin: 0 auto;
+    }
+    .date {
+        position: absolute;
+        right: 280px;
+        top: 25px;
+    }
+
 }
