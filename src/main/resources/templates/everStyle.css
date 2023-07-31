@@ -1,84 +1,84 @@
-.dot {
-    position: absolute;
-    top: 22px;
-    left: 183px;
-    width: 12px;
-    height: 12px;
-    border-radius: 10px;
-    border: 4px solid #000;
-}
+/*.dot {*/
+/*    position: absolute;*/
+/*    top: 22px;*/
+/*    left: 183px;*/
+/*    width: 12px;*/
+/*    height: 12px;*/
+/*    border-radius: 10px;*/
+/*    border: 4px solid #000;*/
+/*}*/
 
-.trail {
-    position: absolute;
-    top: 45px;
-    left: 191px;
-    width: 4px;
-    background: #000;
-    height: calc(100% - 27px);
-}
+/*.trail {*/
+/*    position: absolute;*/
+/*    top: 45px;*/
+/*    left: 191px;*/
+/*    width: 4px;*/
+/*    background: #000;*/
+/*    height: calc(100% - 27px);*/
+/*}*/
 
-.old {
-    color: #ccc;
-}
+/*.old {*/
+/*    color: #ccc;*/
+/*}*/
 
-.old .dot {
-    border-color: #ccc;
-}
+/*.old .dot {*/
+/*    border-color: #ccc;*/
+/*}*/
 
-.old .trail {
-    background: #ccc;
-}
+/*.old .trail {*/
+/*    background: #ccc;*/
+/*}*/
 
-.row {
-    position: relative;
-    width: 240px;
-    padding: 25px 0 25px 213px;
-    margin: 0 auto;
-}
+/*.row {*/
+/*    position: relative;*/
+/*    width: 240px;*/
+/*    padding: 25px 0 25px 213px;*/
+/*    margin: 0 auto;*/
+/*}*/
 
-.date {
-    position: absolute;
-    right: 280px;
-    top: 25px;
-}
+/*.date {*/
+/*    position: absolute;*/
+/*    right: 280px;*/
+/*    top: 25px;*/
+/*}*/
 
-.subject {
-    margin-bottom: 10px;
-}
+/*.subject {*/
+/*    margin-bottom: 10px;*/
+/*}*/
 
-body {
-    font-family: sans-serif;
-    line-height: 130%;
-}
+/*body {*/
+/*    font-family: sans-serif;*/
+/*    line-height: 130%;*/
+/*}*/
 
-b {
-    font-weight: bold;
-}
+/*b {*/
+/*    font-weight: bold;*/
+/*}*/
 
-a {
-    color: #333;
-}
+/*a {*/
+/*    color: #333;*/
+/*}*/
 
-a:hover {
-    color: #666;
-}
+/*a:hover {*/
+/*    color: #666;*/
+/*}*/
 
-#wrapper {
-    margin: 0 auto;
-    width: calc(100% - 80px);
-    max-width: 800px;
-}
+/*#wrapper {*/
+/*    margin: 0 auto;*/
+/*    width: calc(100% - 80px);*/
+/*    max-width: 800px;*/
+/*}*/
 
-.block_container {
-    justify-content: center;
-    display:flex;
-    flex-wrap: wrap;
-}
+/*.block_container {*/
+/*    justify-content: center;*/
+/*    display:flex;*/
+/*    flex-wrap: wrap;*/
+/*}*/
 
-.text-box {
-    color: #fff;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-}
+/*.text-box {*/
+/*    color: #fff;*/
+/*    display: flex;*/
+/*    flex-direction: column;*/
+/*    justify-content: center;*/
+/*    align-items: center;*/
+/*}*/
