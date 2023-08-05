@@ -1,6 +1,6 @@
 package com.example.everlookcalendar.controller
 
-import com.example.everlookcalendar.data.Event
+import com.example.everlookcalendar.data1.Event
 import com.example.everlookcalendar.service.EventService
 import io.github.wimdeblauwe.hsbt.mvc.HxRequest
 import org.springframework.http.MediaType
@@ -79,7 +79,7 @@ class RaidController(private val service: EventService) {
         var searching = true
 //        service.saveEvents(eventList)
 
-        service.getAllEvents().forEach(action = { event ->
+            for (event in   service.getAllEvents()) {
             val parseableEventDate = event.date.substring(4, event.date.length)
             if (event.madness > 0 && searching) {
                 boss = event.madnessBoss
@@ -92,7 +92,7 @@ class RaidController(private val service: EventService) {
                 event.old = 0
                 searching = false
             }
-        })
+        }
         return boss
     }
 
@@ -103,8 +103,8 @@ class RaidController(private val service: EventService) {
         var changeAll = false
         val currentDate = LocalDate.now()
         val eventList: List<Event> = service.getAllEvents().sortedBy { it.date }
-        eventList.forEach(action = { event ->
-
+//        eventList.forEach(action = { event ->
+        for (event in eventList) {
             // Decoding pvp string only when their value is default
             // to avoid concatenation of old decoded values
             if (event.pvp.isNotEmpty() && (!event.pvp.contains("start") && !event.pvp.contains("ends")))
@@ -120,7 +120,7 @@ class RaidController(private val service: EventService) {
 
             // Adding small day name in front of every date
             event.date = eventDate.dayOfWeek.getDisplayName(TextStyle.SHORT, Locale.ENGLISH).toString() + " " + parseableEventDate
-        })
+        }
         return eventList
     }
 }

@@ -10,4 +10,3 @@ class EverlookCalendarApplication
 fun main(args: Array<String>) {
     runApplication<EverlookCalendarApplication>(*args)
 }
-
