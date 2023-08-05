@@ -1,11 +1,8 @@
+# syntax = docker/dockerfile:1.6
+
 FROM ubuntu:latest AS build
 
-ENV DATASOURCE_DRIVER_CLASS_NAME=${DATASOURCE_DRIVER_CLASS_NAME}
-ENV DATASOURCE_PASSWORD=${DATASOURCE_PASSWORD}
-ENV DATASOURCE_URL=${DATASOURCE_URL}
-ENV DATASOURCE_USERNAME=${DATASOURCE_USERNAME}
-ENV JPA_DATABASE=${JPA_DATABASE}
-
+RUN --mount=type=secret,id=_env,dst=/etc/secrets/.env cat /etc/secrets/.env
 RUN apt-get update
 RUN apt-get install openjdk-17-jdk -y
 COPY . .
