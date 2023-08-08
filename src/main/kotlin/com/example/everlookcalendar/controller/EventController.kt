@@ -3,6 +3,8 @@ package com.example.everlookcalendar.controller
 import com.example.everlookcalendar.data1.Event
 import com.example.everlookcalendar.service.EventService
 import io.github.wimdeblauwe.hsbt.mvc.HxRequest
+import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.core.env.Environment
 import org.springframework.http.MediaType
 import org.springframework.http.codec.ServerSentEvent
 import org.springframework.scheduling.annotation.EnableScheduling
@@ -40,11 +42,15 @@ class MainController {
 
 @EnableScheduling
 @RestController
-class RaidController(private val service: EventService) {
+class RaidController(private val service: EventService, @Autowired val environment: Environment) {
+//    @Autowired
+//    private val environment: Environment? = null
 
     @GetMapping("/api/time", produces = [MediaType.TEXT_EVENT_STREAM_VALUE])
     fun getOrderStatus(): SseEmitter {
-        val currentTime = LocalTime.now().minusHours(1)
+
+//        val currentTime = LocalTime.now().minusHours(1)
+        val currentTime = LocalTime.now()
         val formatter = DateTimeFormatter.ofPattern("hh:mm a")
         val sseEmitter = SseEmitter()
         sseEmitter.send(SseEmitter.event().name("message").data(currentTime.format(formatter), MediaType.TEXT_EVENT_STREAM))
@@ -55,22 +61,6 @@ class RaidController(private val service: EventService) {
         return sseEmitter
     }
 
-    // TODO: DELETE
-    // For streaming!!!
-    @GetMapping("/api/time22", produces = [MediaType.TEXT_EVENT_STREAM_VALUE])
-    fun streamEvents(): Flux<ServerSentEvent<String?>?>? {
-        val currentTime = LocalTime.now().minusHours(1)
-        val formatter = DateTimeFormatter.ofPattern("hh:mm a")
-        return Flux.interval(Duration.ofSeconds(1))
-                .map {
-                    ServerSentEvent.builder<String>()
-                            .event("message")
-                            .data(currentTime.format(formatter))
-                            .build()
-                }
-    }
-
-
     @GetMapping("/api/zgboss")
     fun getZgBoss(): String {
         var boss = ""
@@ -79,7 +69,7 @@ class RaidController(private val service: EventService) {
         var searching = true
 //        service.saveEvents(eventList)
 
-            for (event in   service.getAllEvents()) {
+        for (event in service.getAllEvents()) {
             val parseableEventDate = event.date.substring(4, event.date.length)
             if (event.madness > 0 && searching) {
                 boss = event.madnessBoss
@@ -109,6 +99,7 @@ class RaidController(private val service: EventService) {
             // to avoid concatenation of old decoded values
             if (event.pvp.isNotEmpty() && (!event.pvp.contains("start") && !event.pvp.contains("ends")))
                 event.pvp = getPvpString(event.pvp)
+
             val parseableEventDate = event.date.substring(4, event.date.length)
             val eventDate = LocalDate.parse(parseableEventDate)
 
@@ -119,16 +110,14 @@ class RaidController(private val service: EventService) {
             }
 
             // Adding small day name in front of every date
-            event.date = eventDate.dayOfWeek.getDisplayName(TextStyle.SHORT, Locale.ENGLISH).toString() + " " + parseableEventDate
+            event.date = eventDate.dayOfWeek.getDisplayName(TextStyle.SHORT, Locale.ENGLISH).toString() + " " + parseableEventDate + " 04:00 ST"
         }
         return eventList
     }
 }
 
 fun getPvpString(value: String): String {
-    return if (value.substring(value.length - 1, value.length) == "s")
-        value.substring(0, value.length - 1).uppercase() + " weekend start"
-    else
-        value.substring(0, value.length - 1).uppercase() + " weekend ends"
+    return if (value.substring(value.length - 1, value.length) == "s") value.substring(0, value.length - 1).uppercase() + " weekend start"
+    else value.substring(0, value.length - 1).uppercase() + " weekend ends"
 
 }
