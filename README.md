@@ -2,6 +2,8 @@
 
 [everwen.fr.to](https://everwen.fr.to/)
 
+This's to help me and others on Everlook to easily check raid reset times and pvp weekends.
+
 Using kotlin spring boot with htmx.
 
 Using [mustache](https://mustache.github.io/) to transform json request responses into [htmx](https://github.com/bigskysoftware/htmx) via a client-side template before it is swapped into the DOM.
