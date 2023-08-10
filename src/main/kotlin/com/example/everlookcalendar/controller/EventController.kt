@@ -68,15 +68,16 @@ class RaidController(private val service: EventService, @Autowired val environme
         var foundBoss = false
         var searching = true
 //        service.saveEvents(eventList)
+        val eventList: List<Event> = service.getAllEvents().sortedBy { it.date }
 
-        for (event in service.getAllEvents()) {
+        for (event in eventList) {
             val parseableEventDate = event.date.substring(4, event.date.length)
             if (event.madness > 0 && searching) {
+
                 boss = event.madnessBoss
                 foundBoss = true
             }
             val eventDate = LocalDate.parse(parseableEventDate)
-
             // If today is older than event day or didn't reach an event newer than today
             if (currentDate <= eventDate && searching) {
                 event.old = 0
@@ -93,7 +94,6 @@ class RaidController(private val service: EventService, @Autowired val environme
         var changeAll = false
         val currentDate = LocalDate.now()
         val eventList: List<Event> = service.getAllEvents().sortedBy { it.date }
-//        eventList.forEach(action = { event ->
         for (event in eventList) {
             // Decoding pvp string only when their value is default
             // to avoid concatenation of old decoded values
@@ -107,6 +107,18 @@ class RaidController(private val service: EventService, @Autowired val environme
             if (currentDate <= eventDate || changeAll) {
                 event.old = 0
                 changeAll = true
+            }
+
+            // Setting up dmf
+            if (event.dmf.length > 2) {
+                if (event.dmf[0].toString().first() == '+') {
+                    if (event.dmf.contains("mulgore"))
+                        event.dmf = "Darkmoon Faire - Mulgore<br>(not sure about exact time)"
+                    else
+                        event.dmf = "Darkmoon Faire - Elwynn Forest<br>(not sure about exact time)"
+                } else {
+                    event.dmf = "Darkmoon Faire ends"
+                }
             }
 
             // Adding small day name in front of every date

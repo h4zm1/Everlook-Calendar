@@ -1,6 +1,5 @@
 <!DOCTYPE html>
-<html xmlns:htmx="http://www.w3.org/1999/xhtml"
-      xmlns:hx="https://github.com/wimdeblauwe/htmx-spring-boot-thymeleaf">
+<html lang="en">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width">
@@ -16,7 +15,7 @@
 <div style="font-size: 10px">
     Originally designed by nostalrius
 </div>
-<div class = "topText">
+<div class="topText">
     <h1 style="font-weight: bold;text-align: center">Everlook Calendar</h1><br/>
     <div class="block_container" style="margin-bottom: 20px">
         <div> Server time is now:</div>
@@ -40,7 +39,7 @@
 <div id="wrapper">
 
     <div hx-ext="client-side-templates"
-         style="float: left; margin-top: 20px;margin-left: 20px;width: 100%;"
+         id="template"
          hx-get="api/events"
          hx-trigger="load"
          hx-target="#event"
@@ -74,13 +73,14 @@
                 <div class="subject">Zul'Gurub</div>
                 {{/zg}}
                 {{#dmf}}
-                <div class="subject">DArkmoon fair</div>
+                <!--                Triple nested braces to escape html-->
+                <div class="subject">{{{dmf}}}</div>
                 {{/dmf}}
                 {{#pvp}}
                 <div class="subject">{{pvp}}</div>
                 {{/pvp}}
                 {{#madness}}
-                <dib class="subject">ZG Edge of Madness: {{madnessBoss}}</dib>
+                <dib class="subject">ZG Edge of Madness: {{{madnessBoss}}}</dib>
                 {{/madness}}
             </div>
             {{/old}}
@@ -105,7 +105,7 @@
                 <div class="subject">Zul'Gurub</div>
                 {{/zg}}
                 {{#dmf}}
-                <div class="subject">DArkmoon faire</div>
+                <div class="subject">{{{dmf}}}</div>
                 {{/dmf}}
                 {{#pvp}}
                 <div class="subject">{{pvp}}</div>
