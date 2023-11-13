@@ -11,11 +11,11 @@ import kotlinx.serialization.Serializable
 class Event(
         @Id
         @GeneratedValue(strategy = GenerationType.IDENTITY)
-        val id: Int,
-        val ony: Int = 0,
+        val id: Int = -1,
+        var ony: Int = 0,
         val mc: Int = 0,
         val bwl: Int= 0,
-        val zg: Int= 0,
+        var zg: Int= 0,
         var dmf: String= "",
         val madness: Int= 0,
         @Column(name = "madness_boss")
