@@ -17,9 +17,9 @@ class Event(
         val bwl: Int= 0,
         var zg: Int= 0,
         var dmf: String= "",
-        val madness: Int= 0,
+        var madness: Int= 0,
         @Column(name = "madness_boss")
-        val madnessBoss: String = "",
+        var madnessBoss: String = "",
         var pvp: String ="",
         var old: Int=0,
         var date: String="",

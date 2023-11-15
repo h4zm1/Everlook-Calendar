@@ -42,8 +42,6 @@ class MainController {
 @EnableScheduling
 @RestController
 class RaidController(private val service: EventService, @Autowired val environment: Environment) {
-//    @Autowired
-//    private val environment: Environment? = null
 
     @GetMapping("/api/time", produces = [MediaType.TEXT_EVENT_STREAM_VALUE])
     fun getOrderStatus(): SseEmitter {
@@ -60,26 +58,28 @@ class RaidController(private val service: EventService, @Autowired val environme
         return sseEmitter
     }
 
+    enum class Madness {
+        Hazzarah, Renataki, Wushoolay, Grilek
+    }
 
-    final fun generateEvents(): List<Event> {
+    fun generateEvents(): List<Event> {
         var eventList = mutableListOf<Event>()
-        //2 months, we check the month we are in, get the days in it, plus the days in next month, this how long the list is
-        //if we are at the last days of the 2nd month w
         val thisMonthDate = LocalDate.now()
         var days = 0
         for (i in 0..2) {
             val nextMonth = thisMonthDate.plusMonths(i.toLong())
             days += nextMonth.lengthOfMonth()
         }
-
         // these are the first reset days of raids in november 2023
         // TODO:: make a ui for inserting these dates instead of hardcoded
         var zgReset = LocalDate.of(2023, 11, 1)
         var onyReset = LocalDate.of(2023, 11, 4)
         var dayCounter = LocalDate.of(2023, 11, 1)
+        var madnessReset = LocalDate.of(2023, 11, 7)
 
+        var madnessIndex = 0
         val f: NumberFormat = DecimalFormat("00")
-        var eventUp = false // tracking if there's events
+        var eventUp = false // Tracking if there's events
         var newMonth = false
         var firstFriday = false
         var dmfInMulgor = true
@@ -89,8 +89,19 @@ class RaidController(private val service: EventService, @Autowired val environme
         for (i in 1..days) {
             val event = Event()
             val dmfEvent = Event()
+            val madnessEvent = Event()
 
-            // if day == first friday in a month then dmf will be the following monday
+            // Changing madness bosses every 2 weeks in order
+            if (madnessReset.dayOfMonth == dayCounter.dayOfMonth) {
+                eventUp = true
+                madnessEvent.madness = 1
+                madnessEvent.madnessBoss = Madness.entries[madnessIndex].name
+                // This will be 0 -> 1 -> 2 -> 3 -> 0 ...
+                madnessIndex = (madnessIndex+1) % Madness.entries.size
+                madnessReset = madnessReset.plusDays(14)
+            }
+
+            // If day == first friday in a month then dmf will be the following monday
             if (dayCounter.dayOfMonth == 1)
                 newMonth = true
             val dayName = dayCounter.dayOfWeek.name
@@ -135,7 +146,7 @@ class RaidController(private val service: EventService, @Autowired val environme
                 event.zg = 1
                 // 1st day of november is a reset day, so in the 3rd day of november will be another reset
                 // 2 days interval
-                zgReset =  zgReset.plusDays(3)
+                zgReset = zgReset.plusDays(3)
             }
             if (onyReset.dayOfMonth == dayCounter.dayOfMonth) {
                 eventUp = true
@@ -152,10 +163,17 @@ class RaidController(private val service: EventService, @Autowired val environme
                 // abc is just a placeholder for day of the week
                 event.date = "abc $formattedDate-${f.format(dayCounter.dayOfMonth)}"
                 event.old = 1
+                // Separating dmf entries from the rest
                 if (dmfEvent.dmf.length > 2) {
                     dmfEvent.date = "abc $formattedDate-${f.format(dayCounter.dayOfMonth)}"
                     dmfEvent.old = 1
                     eventList.add(dmfEvent)
+                }
+                // Separating madness entries from the rest
+                if(madnessEvent.madnessBoss.isNotEmpty()){
+                    madnessEvent.date = "abc $formattedDate-${f.format(dayCounter.dayOfMonth)}"
+                    madnessEvent.old = 1
+                    eventList.add(madnessEvent)
                 }
                 if (raidUp)
                     eventList.add(event)
@@ -171,7 +189,6 @@ class RaidController(private val service: EventService, @Autowired val environme
     fun getZgBoss(): String {
         var boss = ""
         val currentDate = LocalDate.now()
-        var foundBoss = false
         var searching = true
 //        service.saveEvents(eventList)
 //        val eventList: List<Event> = service.getAllEvents().sortedBy { it.date }
@@ -181,7 +198,6 @@ class RaidController(private val service: EventService, @Autowired val environme
             if (event.madness > 0 && searching) {
 
                 boss = event.madnessBoss
-                foundBoss = true
             }
             val eventDate = LocalDate.parse(parseableEventDate)
             // If today is older than event day or didn't reach an event newer than today
@@ -190,6 +206,10 @@ class RaidController(private val service: EventService, @Autowired val environme
                 searching = false
             }
         }
+        if(boss == "Hazzarah")
+            boss = "Hazza'rah"
+        if(boss == "Grilek")
+            boss = "Gri'lek"
         return boss
     }
 
@@ -221,13 +241,19 @@ class RaidController(private val service: EventService, @Autowired val environme
             if (event.dmf.length > 2) {
                 if (event.dmf[0].toString().first() == '+') {
                     if (event.dmf.contains("mulgore"))
-                        event.dmf = "Darkmoon Faire - Mulgore<br>(not sure about exact time)"
+                        event.dmf = "Darkmoon Faire - Mulgore"
                     else
-                        event.dmf = "Darkmoon Faire - Elwynn Forest<br>(not sure about exact time)"
+                        event.dmf = "Darkmoon Faire - Elwynn Forest"
                 } else {
                     event.dmf = "Darkmoon Faire ends"
                 }
             }
+
+            // Fixing madness names
+            if(event.madnessBoss == "Hazzarah")
+                event.madnessBoss = "Hazza'rah"
+            if(event.madnessBoss == "Grilek")
+                event.madnessBoss = "Gri'lek"
 
             // Adding small day name in front of every date
             event.date = eventDate.dayOfWeek.getDisplayName(TextStyle.SHORT, Locale.ENGLISH).toString() + " " + parseableEventDate + " 04:00 ST"
