@@ -13,9 +13,11 @@ class Event(
         @GeneratedValue(strategy = GenerationType.IDENTITY)
         val id: Int = -1,
         var ony: Int = 0,
-        val mc: Int = 0,
-        val bwl: Int= 0,
+        var mc: Int = 0,
+        var bwl: Int= 0,
         var zg: Int= 0,
+        var aq20: Int=0,
+        var aq40: Int=0,
         var dmf: String= "",
         var madness: Int= 0,
         @Column(name = "madness_boss")

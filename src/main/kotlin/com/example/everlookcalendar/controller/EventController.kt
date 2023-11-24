@@ -62,6 +62,10 @@ class RaidController(private val service: EventService, @Autowired val environme
         Hazzarah, Renataki, Wushoolay, Grilek
     }
 
+    enum class Battlegrounds {
+        AV, WSG, AB
+    }
+
     fun generateEvents(): List<Event> {
         var eventList = mutableListOf<Event>()
         val thisMonthDate = LocalDate.now()
@@ -74,6 +78,10 @@ class RaidController(private val service: EventService, @Autowired val environme
         // TODO:: make a ui for inserting these dates instead of hardcoded
         var zgReset = LocalDate.of(2023, 11, 1)
         var onyReset = LocalDate.of(2023, 11, 4)
+        var aq20Reset = LocalDate.of(2023, 11, 4)
+        var bwlReset = LocalDate.of(2023, 11, 22)
+        var mcReset = LocalDate.of(2023, 11, 22)
+        var aq40Reset = LocalDate.of(2023, 11, 22)
         var dayCounter = LocalDate.of(2023, 11, 1)
         var madnessReset = LocalDate.of(2023, 11, 7)
 
@@ -86,10 +94,14 @@ class RaidController(private val service: EventService, @Autowired val environme
         var dmfUp = false
         var raidUp = false
         var dmfDayCounter = 0
+        var pvpWeekend = ""
+        var pvpIndex = 0
         for (i in 1..days) {
             val event = Event()
             val dmfEvent = Event()
             val madnessEvent = Event()
+            val pvpEvent = Event()
+
 
             // Changing madness bosses every 2 weeks in order
             if (madnessReset.dayOfMonth == dayCounter.dayOfMonth) {
@@ -97,7 +109,7 @@ class RaidController(private val service: EventService, @Autowired val environme
                 madnessEvent.madness = 1
                 madnessEvent.madnessBoss = Madness.entries[madnessIndex].name
                 // This will be 0 -> 1 -> 2 -> 3 -> 0 ...
-                madnessIndex = (madnessIndex+1) % Madness.entries.size
+                madnessIndex = (madnessIndex + 1) % Madness.entries.size
                 madnessReset = madnessReset.plusDays(14)
             }
 
@@ -136,6 +148,22 @@ class RaidController(private val service: EventService, @Autowired val environme
                     }
                 }
             }
+            // PVP
+            if (dayName.equals("THURSDAY")) {
+                eventUp = true
+                pvpEvent.pvp = Battlegrounds.entries[pvpIndex].name + "s"
+                if (Battlegrounds.entries[pvpIndex].name == "none")
+                    pvpEvent.pvp = ""
+                pvpWeekend = Battlegrounds.entries[pvpIndex].name
+                // This will be 0 -> 1 -> 2 -> 3 -> 0 ...
+                pvpIndex = (pvpIndex + 1) % Battlegrounds.entries.size
+
+            }
+            if (dayName.equals("MONDAY") && pvpWeekend.isNotEmpty()) {
+                eventUp = true
+                pvpEvent.pvp = pvpWeekend + "e"
+                pvpWeekend = ""
+            }
             // zgReset.get(Calendar.day of month) will return what day of the month the zgReset date corresponds to
             // we compare that value to what day the counter is at right now
             // the zgReset date will get incremented if the condition is met and the day counter is increased at the end bellow.
@@ -145,15 +173,43 @@ class RaidController(private val service: EventService, @Autowired val environme
                 raidUp = true
                 event.zg = 1
                 // 1st day of november is a reset day, so in the 3rd day of november will be another reset
-                // 2 days interval
+                // 3 days interval
                 zgReset = zgReset.plusDays(3)
             }
             if (onyReset.dayOfMonth == dayCounter.dayOfMonth) {
                 eventUp = true
                 raidUp = true
                 event.ony = 1
-                // 4 days interval
+                // 5 days interval
                 onyReset = onyReset.plusDays(5)
+            }
+            if (aq20Reset.dayOfMonth == dayCounter.dayOfMonth) {
+                eventUp = true
+                raidUp = true
+                event.aq20 = 1
+                // 3 days interval
+                aq20Reset = aq20Reset.plusDays(3)
+            }
+            if (bwlReset.dayOfMonth == dayCounter.dayOfMonth) {
+                eventUp = true
+                raidUp = true
+                event.bwl = 1
+                // 7 days interval
+                bwlReset = bwlReset.plusDays(7)
+            }
+            if (mcReset.dayOfMonth == dayCounter.dayOfMonth) {
+                eventUp = true
+                raidUp = true
+                event.mc = 1
+                // 7 days interval
+                mcReset = mcReset.plusDays(7)
+            }
+            if (aq40Reset.dayOfMonth == dayCounter.dayOfMonth) {
+                eventUp = true
+                raidUp = true
+                event.aq40 = 1
+                // 7 days interval
+                aq40Reset = aq40Reset.plusDays(7)
             }
 //            val event = Event(0, 0, 0, 0, 1, "mulgore", 0, "", "", 1, "abc 2023-07-01")
             if (eventUp) {
@@ -170,10 +226,16 @@ class RaidController(private val service: EventService, @Autowired val environme
                     eventList.add(dmfEvent)
                 }
                 // Separating madness entries from the rest
-                if(madnessEvent.madnessBoss.isNotEmpty()){
+                if (madnessEvent.madnessBoss.isNotEmpty()) {
                     madnessEvent.date = "abc $formattedDate-${f.format(dayCounter.dayOfMonth)}"
                     madnessEvent.old = 1
                     eventList.add(madnessEvent)
+                }
+                //
+                if (pvpEvent.pvp.isNotEmpty()) {
+                    pvpEvent.date = "abc $formattedDate-${f.format(dayCounter.dayOfMonth)}"
+                    pvpEvent.old = 1
+                    eventList.add(pvpEvent)
                 }
                 if (raidUp)
                     eventList.add(event)
@@ -206,9 +268,9 @@ class RaidController(private val service: EventService, @Autowired val environme
                 searching = false
             }
         }
-        if(boss == "Hazzarah")
+        if (boss == "Hazzarah")
             boss = "Hazza'rah"
-        if(boss == "Grilek")
+        if (boss == "Grilek")
             boss = "Gri'lek"
         return boss
     }
@@ -250,13 +312,13 @@ class RaidController(private val service: EventService, @Autowired val environme
             }
 
             // Fixing madness names
-            if(event.madnessBoss == "Hazzarah")
+            if (event.madnessBoss == "Hazzarah")
                 event.madnessBoss = "Hazza'rah"
-            if(event.madnessBoss == "Grilek")
+            if (event.madnessBoss == "Grilek")
                 event.madnessBoss = "Gri'lek"
 
             // Adding small day name in front of every date
-            event.date = eventDate.dayOfWeek.getDisplayName(TextStyle.SHORT, Locale.ENGLISH).toString() + " " + parseableEventDate + " 04:00 ST"
+            event.date = eventDate.dayOfWeek.getDisplayName(TextStyle.SHORT, Locale.ENGLISH).toString() + " " + parseableEventDate + " 03:00 ST"
         }
         return eventList
     }
