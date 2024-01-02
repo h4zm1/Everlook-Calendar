@@ -97,6 +97,7 @@ a:hover {
 }
 
 @media only screen and (max-width: 518px) {
+    /* to make the page display correctly on phones */
     #template {
         float: left;
         margin-top: 20px;
@@ -124,4 +125,72 @@ a:hover {
         top: 25px;
     }
 
+}
+
+
+/* for login page */
+.action {
+    text-decoration: none;
+    color: #6bd;
+    background-color: #fff;
+    font-weight: bold;
+    font-family: sans-serif;
+    border-radius: .5em;
+    border-color: #6bd;
+    border-style: solid;
+    border-spacing: .5em;
+    display: inline-block;
+}
+
+.action {
+    padding: .2em;
+    font-size: 120%;
+    border-width: 5px;
+}
+
+input.action {
+    padding: 3px
+}
+
+.action:hover {
+    background-color: #6bd;
+    color: #fff
+}
+
+.form input.action {
+    margin-top: .2em;
+    margin-bottom: 1em;
+}
+
+.form input, .form label {
+    display: block;
+}
+.configForm {
+    display: flex;
+    justify-content: center;
+    flex-direction: column;
+    align-items: center;
+    height: 100vh;
+}
+.update{
+    text-decoration: none;
+    color: #797979;
+    background-color: #fff;
+    font-weight: bold;
+    font-family: sans-serif;
+    border-radius: .5em;
+    border-color: #c0c0c0;
+    border-style: solid;
+    border-spacing: .5em;
+    display: inline-block;
+}
+.update {
+    margin-top: .8em;
+    padding: .2em;
+    font-size: 120%;
+    border-width: 5px;
+}
+.configbody
+{
+    overflow:hidden;
 }

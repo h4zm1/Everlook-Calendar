@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<HTML>
+<HEAD>
+    <link rel="stylesheet" type="text/css" href="/everStyle.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <TITLE>config</TITLE>
+</HEAD>
+
+<BODY class="configbody">
+<nav class="main">
+    <!-- ensure that crsf is required in logging out-->
+    <form th:action="@{/logout}" method="post">
+        <INPUT class="action" TYPE="submit" VALUE="Log out">
+    </FORM>
+</nav>
+
+
+<FORM class="configForm">
+    <div>
+        <label for="id_date">Set starting date</label>
+        <input id="id_date" type="date" name="date" min="2023-12-31">
+    </div>
+
+    <INPUT class="update" TYPE="submit" NAME="login" VALUE="Update">
+</FORM>
+
+</BODY>
+</HTML>

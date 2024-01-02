@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="https://www.thymeleaf.org">
+
+<HEAD>
+    <link rel="stylesheet" type="text/css" href="/everStyle.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://unpkg.com/htmx.org@1.9.4"></script>
+    <script src="https://unpkg.com/htmx.org/dist/ext/json-enc.js"></script>
+    <script src="https://unpkg.com/htmx.org@1.4.1/dist/ext/client-side-templates.js"></script>
+    <TITLE>login</TITLE>
+</HEAD>
+
+<BODY>
+
+<!-- thymeleaf will generate a hidden input for csrf in next line -->
+<form th:action="@{/login}" hx-ext="json-enc" method="post" class="form">
+    <div>
+        <label for="id_handle">Handle</label>
+        <input id="id_handle" maxlength="15" name="username" type="text" value=""/>
+    </div>
+    <div>
+        <label for="id_password">Password</label>
+        <input id="id_password" maxlength="30" name="password" type="password"/>
+    </div>
+
+    <INPUT class="action" TYPE="submit"  VALUE="Login">
+</FORM>
+
+</BODY>
+</HTML>

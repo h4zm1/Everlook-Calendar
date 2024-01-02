@@ -6,12 +6,11 @@ import io.github.wimdeblauwe.hsbt.mvc.HxRequest
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.core.env.Environment
 import org.springframework.http.MediaType
+import org.springframework.http.ResponseEntity
 import org.springframework.scheduling.annotation.EnableScheduling
 import org.springframework.stereotype.Controller
 import org.springframework.ui.Model
-import org.springframework.web.bind.annotation.GetMapping
-import org.springframework.web.bind.annotation.RequestMapping
-import org.springframework.web.bind.annotation.RestController
+import org.springframework.web.bind.annotation.*
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter
 import java.text.DecimalFormat
 import java.text.NumberFormat
@@ -37,7 +36,22 @@ class MainController {
         // This will redirect to zgenchants page
         return "zgenchants"
     }
+
+
+    @GetMapping("/login")
+    fun login(): String {
+        return "login"
+    }
+
+    @GetMapping
+    @RequestMapping("/config")
+    fun config(model: Model): String {
+
+        return "config"
+    }
+
 }
+
 
 @EnableScheduling
 @RestController
@@ -65,6 +79,13 @@ class RaidController(private val service: EventService, @Autowired val environme
     enum class Battlegrounds {
         AV, WSG, AB
     }
+
+//    @GetMapping("/submit")
+//    @ResponseBody
+//    fun login(): String {
+//        println("test login")
+//        return "test login"
+//    }
 
     fun generateEvents(): List<Event> {
         var eventList = mutableListOf<Event>()
