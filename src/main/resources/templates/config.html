@@ -3,6 +3,8 @@
 <HEAD>
     <link rel="stylesheet" type="text/css" href="/everStyle.css">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://unpkg.com/htmx.org@1.9.4"></script>
+    <script src="https://unpkg.com/htmx.org/dist/ext/json-enc.js"></script>
 
     <TITLE>config</TITLE>
 </HEAD>
@@ -11,19 +13,21 @@
 <nav class="main">
     <!-- ensure that crsf is required in logging out-->
     <form th:action="@{/logout}" method="post">
-        <INPUT class="action" TYPE="submit" VALUE="Log out">
+        <INPUT class="logout" TYPE="submit" VALUE="Log out">
     </FORM>
 </nav>
 
-
-<FORM class="configForm">
+<!--hx-post="/api/update"-->
+<FORM hx-post="/api/update" method="post" class="configForm" hx-target="#form-container">
     <div>
+        <input type="hidden" id="csrf-token" name="_csrf" th:value="${{_csrf.token}}"/>
         <label for="id_date">Set starting date</label>
-        <input id="id_date" type="date" name="date" min="2023-12-31">
+        <input id="id_date" type="date" name="date" min="2023-12-31" value="" required>
     </div>
 
     <INPUT class="update" TYPE="submit" NAME="login" VALUE="Update">
 </FORM>
+<div id="form-container"></div>
 
 </BODY>
 </HTML>

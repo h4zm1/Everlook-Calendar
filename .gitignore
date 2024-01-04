@@ -116,7 +116,6 @@ fabric.properties
 
 ### kaldi ###
 exp/
-data/
 
 ### Kotlin ###
 # Compiled class file
@@ -173,3 +172,7 @@ gradle-app.setting
 
 # End of https://www.toptal.com/developers/gitignore/api/gradle,kotlin,intellij,kaldi
 .env
+
+.idea/modules/EverlookCalendar.main.iml
+
+.idea/dataSources.xml

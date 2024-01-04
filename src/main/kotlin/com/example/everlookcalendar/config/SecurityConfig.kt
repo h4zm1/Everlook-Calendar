@@ -5,13 +5,12 @@ import org.springframework.context.annotation.Configuration
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity
 import org.springframework.security.config.annotation.web.invoke
-import org.springframework.security.core.userdetails.User
 import org.springframework.security.core.userdetails.UserDetailsService
-import org.springframework.security.provisioning.InMemoryUserDetailsManager
+import org.springframework.security.provisioning.JdbcUserDetailsManager
 import org.springframework.security.web.SecurityFilterChain
 import org.springframework.security.web.authentication.logout.HeaderWriterLogoutHandler
 import org.springframework.security.web.header.writers.ClearSiteDataHeaderWriter
-import org.springframework.security.web.util.matcher.AntPathRequestMatcher
+import javax.sql.DataSource
 
 @Configuration
 @EnableWebSecurity
@@ -26,6 +25,7 @@ class SecurityConfig {
                 authorize("/user/**", hasAuthority("ROLE_USER"))
                 authorize("/config", hasAuthority("ROLE_USER"))
                 authorize("/logout", permitAll)
+                authorize("/api/update", permitAll)
             }
             formLogin {
                 defaultSuccessUrl("/config",true)
@@ -37,17 +37,17 @@ class SecurityConfig {
 				logoutSuccessUrl = "/login"
                 invalidateHttpSession = true
             }
+            headers {
+
+            }
         }
         return http.build()
     }
 
+
+    // retrieving users from datasource
     @Bean
-    fun userDetailsService(): UserDetailsService {
-        val userDetails = User.withDefaultPasswordEncoder()
-                .username("user")
-                .password("password")
-                .roles("USER")
-                .build()
-        return InMemoryUserDetailsManager(userDetails)
+    fun users(dataSource: DataSource): UserDetailsService {
+        return JdbcUserDetailsManager(dataSource)
     }
 }

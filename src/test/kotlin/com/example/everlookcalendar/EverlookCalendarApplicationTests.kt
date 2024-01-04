@@ -1,6 +1,6 @@
 package com.example.everlookcalendar
 
-import com.example.everlookcalendar.data1.Event
+import com.example.everlookcalendar.data.Event
 import com.example.everlookcalendar.service.EventService
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired

@@ -165,14 +165,14 @@ input.action {
 .form input, .form label {
     display: block;
 }
-.configForm {
+.configForm{
     display: flex;
     justify-content: center;
     flex-direction: column;
     align-items: center;
     height: 100vh;
 }
-.update{
+.update, .logout{
     text-decoration: none;
     color: #797979;
     background-color: #fff;

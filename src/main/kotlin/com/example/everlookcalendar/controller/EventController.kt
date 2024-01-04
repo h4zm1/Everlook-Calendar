@@ -1,13 +1,16 @@
 package com.example.everlookcalendar.controller
 
-import com.example.everlookcalendar.data1.Event
+import com.example.everlookcalendar.data.Event
 import com.example.everlookcalendar.service.EventService
 import io.github.wimdeblauwe.hsbt.mvc.HxRequest
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.core.env.Environment
+import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
 import org.springframework.scheduling.annotation.EnableScheduling
+import org.springframework.security.authentication.AuthenticationManager
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
 import org.springframework.stereotype.Controller
 import org.springframework.ui.Model
 import org.springframework.web.bind.annotation.*
@@ -52,10 +55,16 @@ class MainController {
 
 }
 
-
 @EnableScheduling
 @RestController
 class RaidController(private val service: EventService, @Autowired val environment: Environment) {
+
+    @PostMapping("/api/update")
+    fun updateStartingDate(@RequestParam date: String) {
+
+        println("date   " + date)
+    }
+
 
     @GetMapping("/api/time", produces = [MediaType.TEXT_EVENT_STREAM_VALUE])
     fun getOrderStatus(): SseEmitter {
@@ -80,12 +89,6 @@ class RaidController(private val service: EventService, @Autowired val environme
         AV, WSG, AB
     }
 
-//    @GetMapping("/submit")
-//    @ResponseBody
-//    fun login(): String {
-//        println("test login")
-//        return "test login"
-//    }
 
     fun generateEvents(): List<Event> {
         var eventList = mutableListOf<Event>()
