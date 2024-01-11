@@ -1,6 +1,8 @@
 package com.example.everlookcalendar.controller
 
 import com.example.everlookcalendar.data.Event
+import com.example.everlookcalendar.data.StartDate
+import com.example.everlookcalendar.repository.DateRepo
 import com.example.everlookcalendar.service.EventService
 import io.github.wimdeblauwe.hsbt.mvc.HxRequest
 import org.springframework.beans.factory.annotation.Autowired
@@ -15,13 +17,16 @@ import org.springframework.stereotype.Controller
 import org.springframework.ui.Model
 import org.springframework.web.bind.annotation.*
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter
+import java.text.DateFormat
 import java.text.DecimalFormat
 import java.text.NumberFormat
 import java.time.LocalDate
 import java.time.LocalTime
+import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.time.format.TextStyle
 import java.util.*
+import javax.swing.text.DateFormatter
 
 
 @Controller
@@ -57,12 +62,15 @@ class MainController {
 
 @EnableScheduling
 @RestController
-class RaidController(private val service: EventService, @Autowired val environment: Environment) {
+class RaidController(@Autowired private val dateRepo: DateRepo, @Autowired val environment: Environment) {
 
     @PostMapping("/api/update")
     fun updateStartingDate(@RequestParam date: String) {
-
-        println("date   " + date)
+        val newDate = StartDate()
+        newDate.date = date
+        // making sure only 1 date exists in the database all the time
+        dateRepo.deleteAll()
+        dateRepo.save(newDate)
     }
 
 
@@ -89,15 +97,18 @@ class RaidController(private val service: EventService, @Autowired val environme
         AV, WSG, AB
     }
 
-
+    // after user select a starting date in /config, inside the event loop check if we reached that date
+    // so the loop will keep  going till it reaches that date
+    // when we reach that date a new countdown will start ticking inside the loop
+    // and any event that happen starting from now will start getting registered into the final list
     fun generateEvents(): List<Event> {
-        var eventList = mutableListOf<Event>()
-        val thisMonthDate = LocalDate.now()
-        var days = 0
-        for (i in 0..2) {
-            val nextMonth = thisMonthDate.plusMonths(i.toLong())
-            days += nextMonth.lengthOfMonth()
-        }
+        // retrieving date from database
+        // there's only and can only be 1 date in db
+        val dateFromDb = dateRepo.findAll().first()
+
+        val eventList = mutableListOf<Event>()
+        var days = 90
+        val startingDate = LocalDate.parse(dateFromDb.date, DateTimeFormatter.ISO_LOCAL_DATE)
         // these are the first reset days of raids in november 2023
         // TODO:: make a ui for inserting these dates instead of hardcoded
         var zgReset = LocalDate.of(2023, 11, 1)
@@ -113,6 +124,7 @@ class RaidController(private val service: EventService, @Autowired val environme
         val f: NumberFormat = DecimalFormat("00")
         var eventUp = false // Tracking if there's events
         var newMonth = false
+        var registeringEvents = false
         var firstFriday = false
         var dmfInMulgor = true
         var dmfUp = false
@@ -120,7 +132,14 @@ class RaidController(private val service: EventService, @Autowired val environme
         var dmfDayCounter = 0
         var pvpWeekend = ""
         var pvpIndex = 0
-        for (i in 1..days) {
+
+        while (true) {
+            // startingDate is retrieved from database
+            // so the loop will keep on going till it reaches that day
+            if (dayCounter.isEqual(startingDate))
+                registeringEvents = true
+
+
             val event = Event()
             val dmfEvent = Event()
             val madnessEvent = Event()
@@ -191,7 +210,6 @@ class RaidController(private val service: EventService, @Autowired val environme
             // zgReset.get(Calendar.day of month) will return what day of the month the zgReset date corresponds to
             // we compare that value to what day the counter is at right now
             // the zgReset date will get incremented if the condition is met and the day counter is increased at the end bellow.
-//            if (zgReset.get(Calendar.DAY_OF_MONTH).equals(dayCounter.get(Calendar.DAY_OF_MONTH))) {
             if (zgReset.dayOfMonth == dayCounter.dayOfMonth) {
                 eventUp = true
                 raidUp = true
@@ -235,12 +253,19 @@ class RaidController(private val service: EventService, @Autowired val environme
                 // 7 days interval
                 aq40Reset = aq40Reset.plusDays(7)
             }
+
 //            val event = Event(0, 0, 0, 0, 1, "mulgore", 0, "", "", 1, "abc 2023-07-01")
-            if (eventUp) {
+
+            // this will get triggered only when there's an event
+            // this means that some days may end up with no events in them ofc
+            // also won't get triggered if the loop didn't reach the starting date
+            if (eventUp && registeringEvents) {
+
                 // Setting up event date
                 val formatter = DateTimeFormatter.ofPattern("yyyy-MM")
                 val formattedDate = dayCounter.format(formatter)
                 // abc is just a placeholder for day of the week
+                // f.format to force a 1-digit number into 2-digit number
                 event.date = "abc $formattedDate-${f.format(dayCounter.dayOfMonth)}"
                 event.old = 1
                 // Separating dmf entries from the rest
@@ -263,10 +288,18 @@ class RaidController(private val service: EventService, @Autowired val environme
                 }
                 if (raidUp)
                     eventList.add(event)
-                eventUp = false
-                raidUp = false
             }
+            eventUp = false
+            raidUp = false
+            // daycounter is how we track what day the loop is at
             dayCounter = dayCounter.plusDays(1)
+            // days = 90 so the loop will stop after 90 cycles
+            // and the countdown only start ticking after reaching the starting date
+            if (registeringEvents) {
+                days--
+                if (days == -1)
+                    break
+            }
         }
         return eventList
     }
