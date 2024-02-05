@@ -170,7 +170,10 @@ input.action {
     justify-content: center;
     flex-direction: column;
     align-items: center;
-    height: 100vh;
+    /*height: 100vh;*/
+}
+.inner-div {
+    padding-top: 20px; /* Adjust as needed */
 }
 .update, .logout{
     text-decoration: none;
@@ -182,15 +185,47 @@ input.action {
     border-color: #c0c0c0;
     border-style: solid;
     border-spacing: .5em;
-    display: inline-block;
+    display: inline;
 }
 .update {
-    margin-top: .8em;
+    margin-top: .6em;
     padding: .2em;
     font-size: 120%;
     border-width: 5px;
+    padding-inline: revert;
 }
 .configbody
 {
     overflow:hidden;
+}
+.text-block {
+    position: relative;
+    margin-top: 30px;
+    padding-top: 10px;
+    padding-bottom: 10px;
+    text-align: center;
+    border: 1px solid #333;
+    width: 320px;
+    border-radius: 10px
+}
+.text-block .heading {
+    position: absolute;
+    top: -12px;
+    left: 50%;
+    transform: translateX( -50% );
+    padding: 0 0.5rem;
+    font-size: 24px;
+    line-height: 1;
+    background-color: white;
+}
+
+#id_date{
+    margin-top: 20px;
+    scale: 1.4;
+}
+#div-container{
+    display: flex;
+    min-height: 100vh;
+    justify-content: center;
+    flex-direction: column;
 }

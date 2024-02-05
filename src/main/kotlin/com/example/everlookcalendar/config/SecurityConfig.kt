@@ -26,6 +26,7 @@ class SecurityConfig {
                 authorize("/config", hasAuthority("ROLE_USER"))
                 authorize("/logout", permitAll)
                 authorize("/api/update", permitAll)
+                authorize("/api/updateTwentyMan", permitAll)
             }
             formLogin {
                 defaultSuccessUrl("/config",true)

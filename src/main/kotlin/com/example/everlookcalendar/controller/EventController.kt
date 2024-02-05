@@ -2,7 +2,9 @@ package com.example.everlookcalendar.controller
 
 import com.example.everlookcalendar.data.Event
 import com.example.everlookcalendar.data.StartDate
-import com.example.everlookcalendar.repository.DateRepo
+import com.example.everlookcalendar.data.TwentyManDate
+import com.example.everlookcalendar.repository.StartDateRepo
+import com.example.everlookcalendar.repository.TwentyDateRepo
 import com.example.everlookcalendar.service.EventService
 import io.github.wimdeblauwe.hsbt.mvc.HxRequest
 import org.springframework.beans.factory.annotation.Autowired
@@ -62,15 +64,25 @@ class MainController {
 
 @EnableScheduling
 @RestController
-class RaidController(@Autowired private val dateRepo: DateRepo, @Autowired val environment: Environment) {
+class RaidController(@Autowired private val startDateRepo: StartDateRepo, @Autowired val twentyDateRepo: TwentyDateRepo, @Autowired val environment: Environment) {
+
+    @PostMapping("/api/updateTwentyMan")
+    fun updateTwentyManDate(@RequestParam value: String) {
+        val twentyDateRaw = twentyDateRepo.findAll().first()
+        val twentyDate = LocalDate.parse(twentyDateRaw.date, DateTimeFormatter.ISO_LOCAL_DATE)
+        val newDate = TwentyManDate()
+        newDate.date = twentyDate.plusDays(value.toInt().toLong()).toString()
+        twentyDateRepo.deleteAll()
+        twentyDateRepo.save(newDate)
+    }
 
     @PostMapping("/api/update")
     fun updateStartingDate(@RequestParam date: String) {
         val newDate = StartDate()
         newDate.date = date
         // making sure only 1 date exists in the database all the time
-        dateRepo.deleteAll()
-        dateRepo.save(newDate)
+        startDateRepo.deleteAll()
+        startDateRepo.save(newDate)
     }
 
 
@@ -104,16 +116,17 @@ class RaidController(@Autowired private val dateRepo: DateRepo, @Autowired val e
     fun generateEvents(): List<Event> {
         // retrieving date from database
         // there's only and can only be 1 date in db
-        val dateFromDb = dateRepo.findAll().first()
+        val startDateFromDb = startDateRepo.findAll().first()
+        val twentyDateFromDb = twentyDateRepo.findAll().first()
 
         val eventList = mutableListOf<Event>()
         var days = 90
-        val startingDate = LocalDate.parse(dateFromDb.date, DateTimeFormatter.ISO_LOCAL_DATE)
+        val startingDate = LocalDate.parse(startDateFromDb.date, DateTimeFormatter.ISO_LOCAL_DATE)
+        var zgReset = LocalDate.parse(twentyDateFromDb.date, DateTimeFormatter.ISO_LOCAL_DATE)
+        var aq20Reset = LocalDate.parse(twentyDateFromDb.date, DateTimeFormatter.ISO_LOCAL_DATE)
         // these are the first reset days of raids in november 2023
         // TODO:: make a ui for inserting these dates instead of hardcoded
-        var zgReset = LocalDate.of(2023, 11, 1)
         var onyReset = LocalDate.of(2023, 11, 4)
-        var aq20Reset = LocalDate.of(2023, 11, 4)
         var bwlReset = LocalDate.of(2023, 11, 22)
         var mcReset = LocalDate.of(2023, 11, 22)
         var aq40Reset = LocalDate.of(2023, 11, 22)

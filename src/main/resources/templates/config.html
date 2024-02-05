@@ -18,15 +18,29 @@
 </nav>
 
 <!--hx-post="/api/update"-->
-<FORM hx-post="/api/update" method="post" class="configForm" hx-target="#form-container">
-    <div>
-        <input type="hidden" id="csrf-token" name="_csrf" th:value="${{_csrf.token}}"/>
-        <label for="id_date">Set starting date</label>
-        <input id="id_date" type="date" name="date" min="2023-12-01" value="" required>
-    </div>
+<div id="div-container">
 
-    <INPUT class="update" TYPE="submit" NAME="login" VALUE="Update">
-</FORM>
+    <FORM hx-post="/api/update" method="post" class="configForm" hx-target="#form-container">
+        <div class="text-block">
+            <label class="heading" for="id_date">Starting Date</label>
+            <input type="hidden" id="csrf-token" name="_csrf" th:value="${{_csrf.token}}"/>
+            <input id="id_date" type="date" name="date" min="2023-12-01" value="" required> <br>
+
+            <INPUT class="update" TYPE="submit" NAME="login" VALUE="Update">
+        </div>
+    </FORM>
+
+    <FORM hx-post="/api/updateTwentyMan" method="post" class="configForm" hx-target="#form-container">
+        <div class="text-block">
+            <input type="hidden" id="csrf-token2" name="_csrf" th:value="${{_csrf.token}}"/>
+            <div class="heading">ZG/AQ20</div>
+            <button class="update" TYPE="submit" VALUE="1" name="value">Move it up a day</button>
+            <button class="update" TYPE="submit" VALUE="-1" name="value"> Move it day back</button>
+        </div>
+    </FORM>
+
+</div>
+
 <div id="form-container"></div>
 
 </BODY>
