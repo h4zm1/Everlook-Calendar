@@ -130,6 +130,7 @@ class RaidController(@Autowired private val startDateRepo: StartDateRepo, @Autow
         var bwlReset = LocalDate.of(2023, 11, 22)
         var mcReset = LocalDate.of(2023, 11, 22)
         var aq40Reset = LocalDate.of(2023, 11, 22)
+        var naxxReset = LocalDate.of(2023, 11, 22)
         var dayCounter = LocalDate.of(2023, 11, 1)
         var madnessReset = LocalDate.of(2023, 11, 7)
 
@@ -141,6 +142,7 @@ class RaidController(@Autowired private val startDateRepo: StartDateRepo, @Autow
         var firstFriday = false
         var dmfInMulgor = true
         var dmfUp = false
+        var dmfOver = false
         var raidUp = false
         var dmfDayCounter = 0
         var pvpWeekend = ""
@@ -169,23 +171,32 @@ class RaidController(@Autowired private val startDateRepo: StartDateRepo, @Autow
                 madnessReset = madnessReset.plusDays(14)
             }
 
-            // If day == first friday in a month then dmf will be the following monday
-            if (dayCounter.dayOfMonth == 1)
+            // If dmf in mulgore then day == first friday in a month then dmf will be the following monday
+            // if dmf in elwynn then day = first monday of month
+            if (dayCounter.dayOfMonth == 1) {
                 newMonth = true
+                dmfOver= false
+            }
             val dayName = dayCounter.dayOfWeek.name
-            if (dayName.equals("FRIDAY") && newMonth)
-                firstFriday = true
-            if (dayName.equals("MONDAY") && firstFriday) {
-                firstFriday = false
-                newMonth = false
-                eventUp = true
-                dmfUp = true
-                if (dmfInMulgor) {
+            if (dmfInMulgor) { // if dmf should be in mulgore
+                if (dayName.equals("FRIDAY") && newMonth)
+                    firstFriday = true
+                if (dayName.equals("MONDAY") && firstFriday) {
+                    firstFriday = false
+                    newMonth = false
+                    eventUp = true
+                    dmfUp = true
                     dmfEvent.dmf = "+mulgore"
-                } else {
+                }
+            } else { // if dmf should be in elwynn
+                if (dayName.equals("MONDAY") && !dmfOver) {
+                    newMonth = false
+                    eventUp = true
+                    dmfUp = true
                     dmfEvent.dmf = "+elwynn"
                 }
             }
+            // creating dmf ending event
             if (dmfUp) {
                 dmfDayCounter++
                 if (dmfDayCounter == 7) {
@@ -195,6 +206,7 @@ class RaidController(@Autowired private val startDateRepo: StartDateRepo, @Autow
                         dmfInMulgor = false
                         dmfUp = false
                         dmfDayCounter = 0
+                        dmfOver = true
                     } else {
                         dmfEvent.dmf = "-elwynn"
                         dmfInMulgor = true
@@ -265,6 +277,13 @@ class RaidController(@Autowired private val startDateRepo: StartDateRepo, @Autow
                 event.aq40 = 1
                 // 7 days interval
                 aq40Reset = aq40Reset.plusDays(7)
+            }
+            if (naxxReset.dayOfMonth == dayCounter.dayOfMonth) {
+                eventUp = true
+                raidUp = true
+                event.naxx = 1
+                // 7 days interval
+                naxxReset = naxxReset.plusDays(7)
             }
 
 //            val event = Event(0, 0, 0, 0, 1, "mulgore", 0, "", "", 1, "abc 2023-07-01")

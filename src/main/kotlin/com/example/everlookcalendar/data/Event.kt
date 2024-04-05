@@ -15,6 +15,7 @@ class Event(
         var ony: Int = 0,
         var mc: Int = 0,
         var bwl: Int= 0,
+        var naxx: Int= 0,
         var zg: Int= 0,
         var aq20: Int=0,
         var aq40: Int=0,
