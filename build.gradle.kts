@@ -33,8 +33,11 @@ dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-reactor")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-reactive")
+    implementation("org.springframework.boot:spring-boot-starter-websocket")
+
     runtimeOnly("org.postgresql:postgresql")
     implementation("org.postgresql:postgresql:42.7.1")
+
 
     developmentOnly("org.springframework.boot:spring-boot-devtools")
     implementation("io.github.wimdeblauwe:htmx-spring-boot-thymeleaf:2.0.1")

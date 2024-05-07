@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <script src="https://unpkg.com/htmx.org@1.9.4"></script>
     <script src="https://unpkg.com/htmx.org/dist/ext/json-enc.js"></script>
+    <script src="https://unpkg.com/htmx.org/dist/ext/sse.js"></script>
 
     <TITLE>config</TITLE>
 </HEAD>
@@ -39,9 +40,31 @@
         </div>
     </FORM>
 
+    <FORM class="configForm">
+        <div class="text-block">
+            <input type="hidden" id="csrf-token3" name="_csrf" th:value="${{_csrf.token}}"/>
+            <div class="heading">DEBUG</div>
+            <p><small>warning: this will enable cors</small></p>
+            <input type="hidden" name="original" value=""
+                   hx-trigger="load"
+                   hx-get="/api/getToggle"
+                   hx-target="#deb"
+                   hx-swap="innerHtml">
+            <button hx-get="/api/setToggle"
+                    hx-trigger="click"
+                    class="debug"
+                    id="deb">off
+            </button>
+
+        </div>
+    </FORM>
+
 </div>
 
 <div id="form-container"></div>
-
+<div id="toggle-element" th:if="${showElement}">
+    <!-- Content to toggle -->
+    This element is visible!
+</div>
 </BODY>
 </HTML>

@@ -1,17 +1,23 @@
 package com.example.everlookcalendar.controller
 
+import com.example.everlookcalendar.EverlookCalendarApplication
+import com.example.everlookcalendar.config.SecurityConfig
 import com.example.everlookcalendar.data.Event
 import com.example.everlookcalendar.data.StartDate
+import com.example.everlookcalendar.data.ToggleDebug
 import com.example.everlookcalendar.data.TwentyManDate
 import com.example.everlookcalendar.repository.StartDateRepo
+import com.example.everlookcalendar.repository.ToggleDebugRepo
 import com.example.everlookcalendar.repository.TwentyDateRepo
 import com.example.everlookcalendar.service.EventService
 import io.github.wimdeblauwe.hsbt.mvc.HxRequest
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.boot.SpringApplication
 import org.springframework.core.env.Environment
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
+import org.springframework.messaging.simp.SimpMessagingTemplate
 import org.springframework.scheduling.annotation.EnableScheduling
 import org.springframework.security.authentication.AuthenticationManager
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
@@ -19,6 +25,7 @@ import org.springframework.stereotype.Controller
 import org.springframework.ui.Model
 import org.springframework.web.bind.annotation.*
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter
+import org.springframework.web.socket.config.annotation.EnableWebSocketMessageBroker
 import java.text.DateFormat
 import java.text.DecimalFormat
 import java.text.NumberFormat
@@ -64,7 +71,16 @@ class MainController {
 
 @EnableScheduling
 @RestController
-class RaidController(@Autowired private val startDateRepo: StartDateRepo, @Autowired val twentyDateRepo: TwentyDateRepo, @Autowired val environment: Environment) {
+class RaidController(
+    @Autowired private val startDateRepo: StartDateRepo,
+    @Autowired val twentyDateRepo: TwentyDateRepo,
+    @Autowired val toggleDebugRepo: ToggleDebugRepo,
+    @Autowired val environment: Environment
+) {
+
+    companion object {
+        var toggleState = "off"
+    }
 
     @PostMapping("/api/updateTwentyMan")
     fun updateTwentyManDate(@RequestParam value: String) {
@@ -86,6 +102,24 @@ class RaidController(@Autowired private val startDateRepo: StartDateRepo, @Autow
     }
 
 
+    @GetMapping("/api/getToggle")
+    fun getToggle(): String {
+        val temp = toggleDebugRepo.findAll().first()
+        val outVal = if (temp.debug) "on" else "off"
+        toggleState = outVal
+        return outVal
+    }
+
+    @GetMapping("/api/setToggle")
+    fun setToggle(): String {
+        toggleState = if (toggleState == "on") "off" else "on"
+        toggleDebugRepo.deleteAll();
+        val newToggle = ToggleDebug()
+        newToggle.debug = if (toggleState == "on") true else false
+        toggleDebugRepo.save(newToggle)
+        return toggleState
+    }
+
     @GetMapping("/api/time", produces = [MediaType.TEXT_EVENT_STREAM_VALUE])
     fun getOrderStatus(): SseEmitter {
 
@@ -93,7 +127,9 @@ class RaidController(@Autowired private val startDateRepo: StartDateRepo, @Autow
         val currentTime = LocalTime.now()
         val formatter = DateTimeFormatter.ofPattern("hh:mm a")
         val sseEmitter = SseEmitter()
-        sseEmitter.send(SseEmitter.event().name("message").data(currentTime.format(formatter), MediaType.TEXT_EVENT_STREAM))
+        sseEmitter.send(
+            SseEmitter.event().name("message").data(currentTime.format(formatter), MediaType.TEXT_EVENT_STREAM)
+        )
         sseEmitter.onError { println("error") }
         sseEmitter.onTimeout {
             sseEmitter.complete()
@@ -175,7 +211,7 @@ class RaidController(@Autowired private val startDateRepo: StartDateRepo, @Autow
             // if dmf in elwynn then day = first monday of month
             if (dayCounter.dayOfMonth == 1) {
                 newMonth = true
-                dmfOver= false
+                dmfOver = false
             }
             val dayName = dayCounter.dayOfWeek.name
             if (dmfInMulgor) { // if dmf should be in mulgore
@@ -336,6 +372,7 @@ class RaidController(@Autowired private val startDateRepo: StartDateRepo, @Autow
         return eventList
     }
 
+    //    @CrossOrigin
     @GetMapping("/api/zgboss")
     fun getZgBoss(): String {
         var boss = ""
@@ -407,14 +444,16 @@ class RaidController(@Autowired private val startDateRepo: StartDateRepo, @Autow
                 event.madnessBoss = "Gri'lek"
 
             // Adding small day name in front of every date
-            event.date = eventDate.dayOfWeek.getDisplayName(TextStyle.SHORT, Locale.ENGLISH).toString() + " " + parseableEventDate + " 03:00 ST"
+            event.date = eventDate.dayOfWeek.getDisplayName(TextStyle.SHORT, Locale.ENGLISH)
+                .toString() + " " + parseableEventDate + " 03:00 ST"
         }
         return eventList
     }
 }
 
 fun getPvpString(value: String): String {
-    return if (value.substring(value.length - 1, value.length) == "s") value.substring(0, value.length - 1).uppercase() + " weekend start"
+    return if (value.substring(value.length - 1, value.length) == "s") value.substring(0, value.length - 1)
+        .uppercase() + " weekend start"
     else value.substring(0, value.length - 1).uppercase() + " weekend ends"
 
 }

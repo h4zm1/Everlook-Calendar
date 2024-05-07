@@ -175,7 +175,7 @@ input.action {
 .inner-div {
     padding-top: 20px; /* Adjust as needed */
 }
-.update, .logout{
+.update, .logout, .debug{
     text-decoration: none;
     color: #797979;
     background-color: #fff;
@@ -189,6 +189,13 @@ input.action {
 }
 .update {
     margin-top: .6em;
+    padding: .2em;
+    font-size: 120%;
+    border-width: 5px;
+    padding-inline: revert;
+}
+.debug {
+    margin-top: -2.6em;
     padding: .2em;
     font-size: 120%;
     border-width: 5px;
