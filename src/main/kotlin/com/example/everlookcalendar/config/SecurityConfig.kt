@@ -13,24 +13,24 @@ import org.springframework.security.web.SecurityFilterChain
 import org.springframework.security.web.authentication.logout.HeaderWriterLogoutHandler
 import org.springframework.security.web.header.writers.ClearSiteDataHeaderWriter
 import org.springframework.web.cors.CorsConfiguration
-import org.springframework.web.cors.CorsConfigurationSource
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource
-//import org.springframework.web.cors.reactive.CorsConfigurationSource
-//import org.springframework.web.cors.reactive.UrlBasedCorsConfigurationSource
+import org.springframework.web.filter.CorsFilter
 import javax.sql.DataSource
 
 @Configuration
 @EnableWebSecurity
 class SecurityConfig(
-    @Autowired val environment: Environment,
+    @Autowired val env: Environment,
 ) {
     val clearSiteData = HeaderWriterLogoutHandler(ClearSiteDataHeaderWriter(ClearSiteDataHeaderWriter.Directive.ALL))
+    private final val allowedOrigins = env.getProperty("CORS-ORIGINS", String::class.java)
+    val allowedOriginsList = allowedOrigins?.split(",")?.map { it.trim() } ?: listOf()
 
     @Bean
     fun filterChain(http: HttpSecurity): SecurityFilterChain {
         http {
             cors {
-                // will use a Bean by the name of corsConfigurationSource (by default)
+                // will use a Bean by the name of corsConfigurationSource or corsFilter (by default)
             }
             authorizeRequests {
                 authorize("/css/**", permitAll)
@@ -59,21 +59,18 @@ class SecurityConfig(
         return http.build()
     }
 
-    @Bean
-    fun corsConfigurationSource(): CorsConfigurationSource {
-        val config = CorsConfiguration()
-//        if (environment.activeProfiles.isNotEmpty()){
-        if (environment.activeProfiles[0] == "dev") {
-            config.allowedOrigins = listOf("*") // Allow all origins
-            config.allowedMethods = listOf("*") // Allow all methods
-            config.allowedHeaders = listOf("*") // Allow all headers
-        }
-//        val source = UrlBasedCorsConfigurationSource()
-        val source = UrlBasedCorsConfigurationSource()
-        source.registerCorsConfiguration("/**", config)
-        return source
-    }
 
+    @Bean
+    fun corsFilter(): CorsFilter {
+        val source = UrlBasedCorsConfigurationSource()
+        val config = CorsConfiguration()
+        config.allowCredentials = true
+        config.allowedOrigins = allowedOriginsList
+        config.addAllowedHeader("*")
+        config.addAllowedMethod("*")
+        source.registerCorsConfiguration("/**", config)
+        return CorsFilter(source)
+    }
 
     // retrieving users from datasource
     @Bean

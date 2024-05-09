@@ -372,7 +372,6 @@ class RaidController(
         return eventList
     }
 
-    //    @CrossOrigin
     @GetMapping("/api/zgboss")
     fun getZgBoss(): String {
         var boss = ""
@@ -403,7 +402,7 @@ class RaidController(
 
 
     @GetMapping("/api/events")
-    @HxRequest // Prevent getting called from url directly
+//    @HxRequest // Prevent getting called from url directly
     fun getEvents(): List<Event> {
 
         var changeAll = false
