@@ -1,7 +1,5 @@
 package com.example.everlookcalendar.controller
 
-import com.example.everlookcalendar.EverlookCalendarApplication
-import com.example.everlookcalendar.config.SecurityConfig
 import com.example.everlookcalendar.data.Event
 import com.example.everlookcalendar.data.StartDate
 import com.example.everlookcalendar.data.ToggleDebug
@@ -9,33 +7,21 @@ import com.example.everlookcalendar.data.TwentyManDate
 import com.example.everlookcalendar.repository.StartDateRepo
 import com.example.everlookcalendar.repository.ToggleDebugRepo
 import com.example.everlookcalendar.repository.TwentyDateRepo
-import com.example.everlookcalendar.service.EventService
-import io.github.wimdeblauwe.hsbt.mvc.HxRequest
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.SpringApplication
 import org.springframework.core.env.Environment
-import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
-import org.springframework.http.ResponseEntity
-import org.springframework.messaging.simp.SimpMessagingTemplate
 import org.springframework.scheduling.annotation.EnableScheduling
-import org.springframework.security.authentication.AuthenticationManager
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
 import org.springframework.stereotype.Controller
 import org.springframework.ui.Model
 import org.springframework.web.bind.annotation.*
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter
-import org.springframework.web.socket.config.annotation.EnableWebSocketMessageBroker
-import java.text.DateFormat
 import java.text.DecimalFormat
 import java.text.NumberFormat
 import java.time.LocalDate
 import java.time.LocalTime
-import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.time.format.TextStyle
 import java.util.*
-import javax.swing.text.DateFormatter
 
 
 @Controller
@@ -122,7 +108,6 @@ class RaidController(
 
     @GetMapping("/api/time", produces = [MediaType.TEXT_EVENT_STREAM_VALUE])
     fun getOrderStatus(): SseEmitter {
-
 //        val currentTime = LocalTime.now().minusHours(1)
         val currentTime = LocalTime.now()
         val formatter = DateTimeFormatter.ofPattern("hh:mm a")
@@ -171,6 +156,7 @@ class RaidController(
         var madnessReset = LocalDate.of(2023, 11, 7)
 
         var madnessIndex = 0
+        var madnessBoss = ""
         val f: NumberFormat = DecimalFormat("00")
         var eventUp = false // Tracking if there's events
         var newMonth = false
@@ -205,6 +191,7 @@ class RaidController(
                 // This will be 0 -> 1 -> 2 -> 3 -> 0 ...
                 madnessIndex = (madnessIndex + 1) % Madness.entries.size
                 madnessReset = madnessReset.plusDays(14)
+                madnessBoss = madnessEvent.madnessBoss
             }
 
             // If dmf in mulgore then day == first friday in a month then dmf will be the following monday
@@ -328,7 +315,7 @@ class RaidController(
             // this means that some days may end up with no events in them ofc
             // also won't get triggered if the loop didn't reach the starting date
             if (eventUp && registeringEvents) {
-
+                event.madnessBoss = madnessBoss
                 // Setting up event date
                 val formatter = DateTimeFormatter.ofPattern("yyyy-MM")
                 val formattedDate = dayCounter.format(formatter)
@@ -382,7 +369,7 @@ class RaidController(
         val eventList = generateEvents().sortedBy { it.date }
         for (event in eventList) {
             val parseableEventDate = event.date.substring(4, event.date.length)
-            if (event.madness > 0 && searching) {
+            if (event.madnessBoss.isNotEmpty() && searching) {
 
                 boss = event.madnessBoss
             }
