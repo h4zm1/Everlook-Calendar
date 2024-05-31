@@ -19,9 +19,7 @@ import javax.sql.DataSource
 
 @Configuration
 @EnableWebSecurity
-class SecurityConfig(
-    @Autowired val env: Environment,
-) {
+class SecurityConfig(@Autowired val env: Environment) {
     val clearSiteData = HeaderWriterLogoutHandler(ClearSiteDataHeaderWriter(ClearSiteDataHeaderWriter.Directive.ALL))
     private final val allowedOrigins = env.getProperty("CORS-ORIGINS", String::class.java)
     val allowedOriginsList = allowedOrigins?.split(",")?.map { it.trim() } ?: listOf()
@@ -33,6 +31,7 @@ class SecurityConfig(
                 // will use a Bean by the name of corsConfigurationSource or corsFilter (by default)
             }
             authorizeRequests {
+                authorize("/zgenchants", permitAll)
                 authorize("/css/**", permitAll)
                 authorize("/user/**", hasAuthority("ROLE_USER"))
                 authorize("/config", hasAuthority("ROLE_USER"))
