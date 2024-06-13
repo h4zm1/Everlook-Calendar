@@ -78,6 +78,7 @@ class RaidController(
         twentyDateRepo.save(newDate)
     }
 
+
     @PostMapping("/api/update")
     fun updateStartingDate(@RequestParam date: String) {
         val newDate = StartDate()

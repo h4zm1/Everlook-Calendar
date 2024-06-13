@@ -27,6 +27,9 @@ class SecurityConfig(@Autowired val env: Environment) {
     @Bean
     fun filterChain(http: HttpSecurity): SecurityFilterChain {
         http {
+            csrf{
+                disable()
+            }
             cors {
                 // will use a Bean by the name of corsConfigurationSource or corsFilter (by default)
             }
@@ -37,6 +40,7 @@ class SecurityConfig(@Autowired val env: Environment) {
                 authorize("/config", hasAuthority("ROLE_USER"))
                 authorize("/logout", permitAll)
                 authorize("/api/update", permitAll)
+                authorize("/auth/login", permitAll)
                 authorize("/api/setToggle", permitAll)
                 authorize("/api/getToggle", permitAll)
                 authorize("/api/updateTwentyMan", permitAll)
