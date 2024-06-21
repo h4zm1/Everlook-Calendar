@@ -1,33 +1,35 @@
 package com.example.everlookcalendar.config
 
+import com.example.everlookcalendar.repository.UserRepo
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.core.env.Environment
+import org.springframework.security.authentication.AuthenticationManager
+import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity
 import org.springframework.security.config.annotation.web.invoke
 import org.springframework.security.core.userdetails.UserDetailsService
-import org.springframework.security.provisioning.JdbcUserDetailsManager
+import org.springframework.security.core.userdetails.UsernameNotFoundException
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder
 import org.springframework.security.web.SecurityFilterChain
-import org.springframework.security.web.authentication.logout.HeaderWriterLogoutHandler
-import org.springframework.security.web.header.writers.ClearSiteDataHeaderWriter
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter
 import org.springframework.web.cors.CorsConfiguration
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource
 import org.springframework.web.filter.CorsFilter
-import javax.sql.DataSource
+
 
 @Configuration
 @EnableWebSecurity
-class SecurityConfig(@Autowired val env: Environment) {
-    val clearSiteData = HeaderWriterLogoutHandler(ClearSiteDataHeaderWriter(ClearSiteDataHeaderWriter.Directive.ALL))
+class SecurityConfig(@Autowired val env: Environment, @Autowired val userRepo: UserRepo) {
     private final val allowedOrigins = env.getProperty("CORS-ORIGINS", String::class.java)
     val allowedOriginsList = allowedOrigins?.split(",")?.map { it.trim() } ?: listOf()
 
     @Bean
-    fun filterChain(http: HttpSecurity): SecurityFilterChain {
+    fun filterChain(http: HttpSecurity, jwtTokenFilter: JwtTokenFilter): SecurityFilterChain {
         http {
-            csrf{
+            csrf {
                 disable()
             }
             cors {
@@ -39,22 +41,14 @@ class SecurityConfig(@Autowired val env: Environment) {
                 authorize("/user/**", hasAuthority("ROLE_USER"))
                 authorize("/config", hasAuthority("ROLE_USER"))
                 authorize("/logout", permitAll)
-                authorize("/api/update", permitAll)
+                authorize("/api/update", authenticated)
                 authorize("/auth/login", permitAll)
-                authorize("/api/setToggle", permitAll)
-                authorize("/api/getToggle", permitAll)
-                authorize("/api/updateTwentyMan", permitAll)
+                authorize("/api/setToggle", authenticated)
+                authorize("/api/getToggle", authenticated)
+                authorize("/api/updateTwentyMan", authenticated)
             }
-            formLogin {
-                defaultSuccessUrl("/config", true)
-                loginPage = "/login"
-                permitAll()
-            }
-            logout {
-                addLogoutHandler(clearSiteData)
-                logoutSuccessUrl = "/login"
-                invalidateHttpSession = true
-            }
+            // handling processing incoming requests for token verification
+            addFilterBefore(jwtTokenFilter, UsernamePasswordAuthenticationFilter::class.java)
             headers {
 
             }
@@ -75,9 +69,23 @@ class SecurityConfig(@Autowired val env: Environment) {
         return CorsFilter(source)
     }
 
-    // retrieving users from datasource
+
     @Bean
-    fun users(dataSource: DataSource): UserDetailsService {
-        return JdbcUserDetailsManager(dataSource)
+    fun userDetailsService(): UserDetailsService {
+        return UserDetailsService { username: String? ->
+            userRepo.findByEmail(username)?.
+            orElseThrow { UsernameNotFoundException("User not found") }
+        }
     }
+    @Bean
+    fun passwordEncoder(): BCryptPasswordEncoder {
+        return BCryptPasswordEncoder()
+    }
+
+    @Bean
+    @Throws(Exception::class)
+    fun authenticationManager(authConfig: AuthenticationConfiguration): AuthenticationManager {
+        return authConfig.authenticationManager
+    }
+
 }

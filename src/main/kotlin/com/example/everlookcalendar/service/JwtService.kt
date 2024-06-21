@@ -13,7 +13,7 @@ import java.util.*
 @Service
 class JwtService {
     val secretKey = System.getenv("SECRET_KEY");
-    val expirationTime = 900;
+    val expirationTime = System.getenv("EXPIRATION_TIME");
 
     fun extractUsername(token: String?): String {
         return extractClaim<String>(token, Claims::getSubject)
@@ -39,7 +39,7 @@ class JwtService {
 
     fun generateToken(userDetails: UserCred): String {
         val claims: Map<String, Any> = HashMap()
-        return createToken(claims, userDetails.email)
+        return createToken(claims, userDetails.username)
     }
 
 
@@ -48,7 +48,7 @@ class JwtService {
             .claims(claims)
             .subject(subject)
             .issuedAt(Date(System.currentTimeMillis()))
-            .expiration(Date(System.currentTimeMillis() + expirationTime))
+            .expiration(Date(System.currentTimeMillis() + expirationTime.toInt()))
             .signWith(getSignInKey(), io.jsonwebtoken.SignatureAlgorithm.HS256)
             .compact()
     }

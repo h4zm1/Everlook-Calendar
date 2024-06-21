@@ -9,18 +9,17 @@ import org.springframework.stereotype.Service
 
 
 @Service
-class AuthService(@Autowired val userRepo: UserRepo) {
-    private val authenticationManager: AuthenticationManager? = null
+class AuthService(@Autowired val userRepo: UserRepo, @Autowired val authenticationManager: AuthenticationManager) {
 
     fun authenticate(input: UserCred): UserCred {
-//        authenticationManager!!.authenticate(
-//            UsernamePasswordAuthenticationToken(
-//                input.email,
-//                input.password
-//            )
-//        )
+        authenticationManager.authenticate(
+            UsernamePasswordAuthenticationToken(
+                input.username,
+                input.password
+            )
+        )
 
-        return userRepo.findByEmail(input.email)
+        return userRepo.findByEmail(input.username)
             ?.orElseThrow()!!
     }
 }
