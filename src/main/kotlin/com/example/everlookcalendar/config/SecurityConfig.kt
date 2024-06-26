@@ -41,11 +41,14 @@ class SecurityConfig(@Autowired val env: Environment, @Autowired val userRepo: U
                 authorize("/user/**", hasAuthority("ROLE_USER"))
                 authorize("/config", hasAuthority("ROLE_USER"))
                 authorize("/logout", permitAll)
-                authorize("/api/update", authenticated)
+                authorize("/api/update", authenticated, hasAuthority("ROLE_USER"))
                 authorize("/auth/login", permitAll)
                 authorize("/api/setToggle", authenticated)
                 authorize("/api/getToggle", authenticated)
                 authorize("/api/updateTwentyMan", authenticated)
+            }
+            formLogin {
+                defaultSuccessUrl("/config",true)
             }
             // handling processing incoming requests for token verification
             addFilterBefore(jwtTokenFilter, UsernamePasswordAuthenticationFilter::class.java)

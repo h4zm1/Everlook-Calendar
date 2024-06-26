@@ -5,19 +5,27 @@ import org.springframework.security.core.GrantedAuthority
 import org.springframework.security.core.authority.SimpleGrantedAuthority
 import org.springframework.security.core.userdetails.UserDetails
 
-
 @Entity
 @Table(name = "usercred")
 class UserCred(
     private var email: String = "",
-    private var password: String = ""
+    private var password: String = "",
 ) : UserDetails {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     val id: Int = -1
 
-    override fun getAuthorities(): MutableCollection<out GrantedAuthority> {
-        return mutableListOf(SimpleGrantedAuthority("ROLE_USER"))
+    @ManyToMany(fetch = FetchType.EAGER)
+    @JoinTable(
+        name = "user_authority",
+        joinColumns = [JoinColumn(name = "user_id")],
+        inverseJoinColumns = [JoinColumn(name = "authority_id")]
+    )
+    private val authorities: MutableSet<Authority> = mutableSetOf()
+
+
+    override fun getAuthorities(): Collection<GrantedAuthority> {
+        return authorities.map { SimpleGrantedAuthority(it.name) }
     }
 
     override fun getPassword(): String {
