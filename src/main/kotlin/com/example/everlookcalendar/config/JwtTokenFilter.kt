@@ -28,6 +28,8 @@ class JwtTokenFilter(
             jwtToken = authorizationHeader.substring(7);
             try {
                 userEmail = jwtService.extractUsername(jwtToken);
+                println(" extracting username from token: " );
+
             } catch (e: Exception) {
                 // Handle token extraction/validation errors
                 println("Error extracting username from token: " + e.message);

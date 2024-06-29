@@ -1,5 +1,6 @@
 package com.example.everlookcalendar.controller
 
+import com.example.everlookcalendar.data.RefreshToken
 import com.example.everlookcalendar.data.UserAuthority
 import com.example.everlookcalendar.data.UserCred
 import com.example.everlookcalendar.repository.AuthRepo
@@ -7,45 +8,86 @@ import com.example.everlookcalendar.repository.RoleRepo
 import com.example.everlookcalendar.repository.UserRepo
 import com.example.everlookcalendar.service.AuthService
 import com.example.everlookcalendar.service.JwtService
+import com.example.everlookcalendar.service.RefreshTokenService
+import com.example.everlookcalendar.service.TokenRefreshException
+import jakarta.servlet.http.HttpServletRequest
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.http.HttpHeaders
+import org.springframework.http.HttpStatus
+import org.springframework.http.ResponseCookie
 import org.springframework.http.ResponseEntity
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder
+import org.springframework.validation.annotation.Validated
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
+import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 
 
 @RestController
+@RequestMapping("/auth")
 class AuthController(
     @Autowired val userRepo: UserRepo,
     @Autowired val roleRepo: RoleRepo,
     @Autowired val authService: AuthService,
     @Autowired val jwtService: JwtService,
+    @Autowired val refreshTokenService: RefreshTokenService,
     private val passwordEncoder: BCryptPasswordEncoder,
     private val authRepo: AuthRepo
 ) {
 
-    @PostMapping("/auth/login")
-    fun login(@RequestBody user: UserCred): ResponseEntity<Map<String, Any>> {
+    @PostMapping("/login")
+    fun login(@RequestBody user: UserCred): ResponseEntity<Any> {
         val authenticatedUser: UserCred = authService.authenticate(user)
-        val jwtToken: String = jwtService.generateToken(authenticatedUser)
+        val jwtCookie = jwtService.generateJwtCookie(authenticatedUser)
+
+        val refreshToken = refreshTokenService.createRefreshToken(authenticatedUser.id)
+        val jwtRefreshCookie = jwtService.generateRefreshJwtCookie(refreshToken.token)
 
         println("login mail " + user.username + " role " + authenticatedUser.authorities)
         val data = mapOf(
-            "token" to jwtToken,
+//            "token" to jwtToken,
             "expiresIn" to jwtService.expirationTime
         )
-        return ResponseEntity.ok(data)
+
+        val headers = HttpHeaders()
+        headers.add("Set-Cookie", jwtCookie.toString())
+        headers.add("Set-Cookie", jwtRefreshCookie.toString())
+
+        return ResponseEntity<Any>(data, headers, HttpStatus.OK)
     }
 
-    @PostMapping("/auth/register")
+    @PostMapping("/register")
     fun register(@RequestBody cred: UserCred): ResponseEntity<String> {
         println("reg")
         val user = UserCred(cred.username, passwordEncoder.encode(cred.password))
         val savedUser = userRepo.save(user)
-        authRepo.save(UserAuthority(savedUser,roleRepo.findByName("ROLE_GUEST").get()))
+        authRepo.save(UserAuthority(savedUser, roleRepo.findByName("ROLE_GUEST").get()))
         return ResponseEntity.ok("User registered successfully!");
-
     }
 
+    @PostMapping("/refreshtoken")
+    fun refreshToken(request: HttpServletRequest): ResponseEntity<*> {
+        val refreshToken = jwtService.getJwtRefreshFromCookies(request)
+
+        if (!refreshToken.isNullOrEmpty()) {
+            return refreshTokenService.findByToken(refreshToken)
+                .map(refreshTokenService::verifyExpiration)
+                .map(RefreshToken::user)
+                .map { user ->
+                    val jwtCookie: ResponseCookie = jwtService.generateJwtCookie(user)
+                    ResponseEntity.ok()
+                        .header(HttpHeaders.SET_COOKIE, jwtCookie.toString())
+                        .body(("Token is refreshed successfully!"))
+                }
+                .orElseThrow {
+                    TokenRefreshException(
+                        refreshToken,
+                        "Refresh token is not in database!"
+                    )
+                }
+        }
+
+        return ResponseEntity.badRequest().body<Any>(("Refresh Token is empty!"))
+    }
 }
