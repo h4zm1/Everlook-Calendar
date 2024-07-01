@@ -25,35 +25,35 @@ class JwtService {
         return extractClaim<String>(token, Claims::getSubject)
     }
 
+    fun extractUserId(token: String?): Int {
+        return extractClaim<String>(token, Claims::getId).toInt()
+    }
+
     //
     fun extractExpiration(token: String?): Date {
         return extractClaim<Date>(token, Claims::getExpiration)
     }
 
-    fun getJwtFromCookie(request: HttpServletRequest): String? {
-        val cookie = WebUtils.getCookie(request, "jwt")
-        if (cookie != null) {
-            return cookie.value
-        } else {
-            return null
-        }
-    }
-
-    fun generateJwtCookie(user: UserCred): ResponseCookie {
-        val jwt = generateToken(user)
-        return generateCookie("jwt",jwt,"/auth")
-    }
-
-    fun generateRefreshJwtCookie(refreshToken: String): ResponseCookie {
-        return generateCookie("jwt-refresh",refreshToken,"/auth/refreshtoken")
-    }
-
-    fun getCleanCookie(): ResponseCookie {
+    fun getCleanJwtToken(): ResponseCookie {
         val responseCookie = ResponseCookie.from("jwt", "").path("/auth").build()
         return responseCookie
     }
 
-    fun generateCookie(name: String, value: String, path:String): ResponseCookie {
+    fun getCleanRefreshToken(): ResponseCookie {
+        val responseCookie = ResponseCookie.from("jwt-refresh", "").path("/auth/refreshtoken").build()
+        return responseCookie
+    }
+
+    fun generateJwtCookie(user: UserCred): ResponseCookie {
+        val jwt = generateToken(user)
+        return generateCookie("jwt", jwt, "/auth")
+    }
+
+    fun generateRefreshJwtCookie(refreshToken: String): ResponseCookie {
+        return generateCookie("jwt-refresh", refreshToken, "/auth/refreshtoken")
+    }
+
+    fun generateCookie(name: String, value: String, path: String): ResponseCookie {
 
         val responseCookie =
             ResponseCookie.from(name, value).path(path).maxAge(60).httpOnly(true).secure(true).sameSite("Strict")
@@ -91,14 +91,15 @@ class JwtService {
 
     fun generateToken(user: UserCred): String {
         val claims: Map<String, Any> = HashMap()
-        return createToken(claims, user.username)
+        return createToken(claims, user.username, user.id.toString())
     }
 
 
-    private fun createToken(claims: Map<String, Any>, subject: String): String {
+    private fun createToken(claims: Map<String, Any>, subject: String, id: String): String {
         return Jwts.builder()
             .claims(claims)
             .subject(subject)
+            .id(id)
             .issuedAt(Date(System.currentTimeMillis()))
             .expiration(Date(System.currentTimeMillis() + expirationTime.toInt()))
             .signWith(getSignInKey(), io.jsonwebtoken.SignatureAlgorithm.HS256)
@@ -118,6 +119,7 @@ class JwtService {
         val username = extractUsername(token)
         return (username == userDetails.username && !isTokenExpired(token))
     }
+
     fun getJwtFromCookies(request: HttpServletRequest): String? {
         return getCookieValueByName(request, "jwt")
     }
@@ -125,12 +127,14 @@ class JwtService {
     fun getJwtRefreshFromCookies(request: HttpServletRequest): String? {
         return getCookieValueByName(request, "jwt-refresh")
     }
+
+
     private fun getCookieValueByName(request: HttpServletRequest, name: String): String? {
         val cookie = WebUtils.getCookie(request, name)
         if (cookie != null) {
-           return cookie.value
+            return cookie.value
         } else {
-            logger.error("no cookie found by the name "+name)
+            logger.error("no cookie found by the name " + name)
             return null
         }
     }

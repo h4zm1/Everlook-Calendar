@@ -19,23 +19,26 @@ class JwtTokenFilter(
     @Autowired val jwtService: JwtService,
     @Autowired val userDetailsService: UserDetailsService
 ) : OncePerRequestFilter() {
-    override fun doFilterInternal(req: HttpServletRequest, res: HttpServletResponse, chain: FilterChain) {
-        val authorizationHeader = req.getHeader("Authorization");
+    override fun doFilterInternal(request: HttpServletRequest, response: HttpServletResponse, chain: FilterChain) {
         var userEmail = "";
         var jwtToken = "";
 
-        if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
-            jwtToken = authorizationHeader.substring(7);
+        // try and get jwt from cookie, .toString to work around the null check
+        jwtToken = jwtService.getJwtFromCookies(request).toString()
+
+        if (jwtToken.isNotEmpty()) {
             try {
-                userEmail = jwtService.extractUsername(jwtToken);
-                println(" extracting username from token: " );
+                userEmail = jwtService.extractUsername(jwtToken)
+                println("Extracting username from token: $userEmail")
+
+                // Set the JWT in the request attributes for Spring Security to use
+                request.setAttribute("Authorization", "Bearer $jwtToken")
 
             } catch (e: Exception) {
                 // Handle token extraction/validation errors
-                println("Error extracting username from token: " + e.message);
+                println("Error extracting username from token:" + e.message)
             }
         }
-
 
         if (userEmail.isNotEmpty() && SecurityContextHolder.getContext().authentication == null) {
             val userDetails: UserDetails = userDetailsService.loadUserByUsername(userEmail)
@@ -44,12 +47,12 @@ class JwtTokenFilter(
                     userDetails, null, userDetails.authorities
                 )
 
-                authenticationToken.details = WebAuthenticationDetailsSource().buildDetails(req)
+                authenticationToken.details = WebAuthenticationDetailsSource().buildDetails(request)
 
                 SecurityContextHolder.getContext().authentication = authenticationToken
             }
         }
 
-        chain.doFilter(req, res)
+        chain.doFilter(request, response)
     }
 }

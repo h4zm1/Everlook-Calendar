@@ -42,6 +42,7 @@ class SecurityConfig(@Autowired val env: Environment, @Autowired val userRepo: U
                 authorize("/config", hasAuthority("ROLE_USER"))
                 authorize("/logout", permitAll)
                 authorize("/auth/login", permitAll)
+                authorize("/auth/signout", authenticated)
                 authorize("/conf/update", authenticated, hasAuthority("ROLE_USER"))
                 authorize("/conf/getToggle", authenticated)
                 authorize("/conf/setToggle", authenticated)

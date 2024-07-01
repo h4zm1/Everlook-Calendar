@@ -16,8 +16,10 @@ import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseCookie
 import org.springframework.http.ResponseEntity
+import org.springframework.security.access.prepost.PreAuthorize
+import org.springframework.security.authentication.AuthenticationManager
+import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder
-import org.springframework.validation.annotation.Validated
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
@@ -31,6 +33,7 @@ class AuthController(
     @Autowired val roleRepo: RoleRepo,
     @Autowired val authService: AuthService,
     @Autowired val jwtService: JwtService,
+    @Autowired val authenticationManager: AuthenticationManager,
     @Autowired val refreshTokenService: RefreshTokenService,
     private val passwordEncoder: BCryptPasswordEncoder,
     private val authRepo: AuthRepo
@@ -59,7 +62,6 @@ class AuthController(
 
     @PostMapping("/register")
     fun register(@RequestBody cred: UserCred): ResponseEntity<String> {
-        println("reg")
         val user = UserCred(cred.username, passwordEncoder.encode(cred.password))
         val savedUser = userRepo.save(user)
         authRepo.save(UserAuthority(savedUser, roleRepo.findByName("ROLE_GUEST").get()))
@@ -90,4 +92,25 @@ class AuthController(
 
         return ResponseEntity.badRequest().body<Any>(("Refresh Token is empty!"))
     }
+
+    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
+    @PostMapping("/signout")
+    fun logoutUser(request: HttpServletRequest): ResponseEntity<*> {
+        val token = jwtService.getJwtFromCookies(request)
+
+        val userEmail = jwtService.extractUsername(token);
+        val userId = jwtService.extractUserId(token);
+
+        refreshTokenService.deleteByUserId(userId)
+
+        val jwtCookie: ResponseCookie = jwtService.getCleanJwtToken()
+        val jwtRefreshCookie: ResponseCookie = jwtService.getCleanRefreshToken()
+
+        return ResponseEntity.ok()
+            .header(HttpHeaders.SET_COOKIE, jwtCookie.toString())
+            .header(HttpHeaders.SET_COOKIE, jwtRefreshCookie.toString())
+            .body<Any>(("You've been signed out!"))
+    }
+
+
 }
