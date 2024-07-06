@@ -23,19 +23,23 @@ class JwtTokenFilter(
         var userEmail = "";
         var jwtToken = "";
 
+        if (request.requestURI.contains("/login")) {
+            chain.doFilter(request, response)
+            return
+        }
         // try and get jwt from cookie, .toString to work around the null check
         jwtToken = jwtService.getJwtFromCookies(request).toString()
 
-        if (jwtToken.isNotEmpty()) {
+        if (jwtToken.isNotEmpty() && jwtService.validateJwtToken(jwtToken)) {
             try {
                 userEmail = jwtService.extractUsername(jwtToken)
                 println("Extracting username from token: $userEmail")
 
-                // Set the JWT in the request attributes for Spring Security to use
+                // set the JWT in the request attributes for Spring Security to use
                 request.setAttribute("Authorization", "Bearer $jwtToken")
 
             } catch (e: Exception) {
-                // Handle token extraction/validation errors
+                // handle token extraction/validation errors
                 println("Error extracting username from token:" + e.message)
             }
         }
@@ -54,5 +58,11 @@ class JwtTokenFilter(
         }
 
         chain.doFilter(request, response)
+    }
+
+    // no need to filter /api urls
+    override fun shouldNotFilter(request: HttpServletRequest): Boolean {
+        val path = request.servletPath
+        return path.contains("/api")
     }
 }

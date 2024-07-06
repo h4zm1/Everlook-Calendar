@@ -17,25 +17,26 @@ class RefreshTokenService(
     @Autowired val refreshTokenRepository: RefreshTokenRepo,
     @Autowired val userRepository: UserRepo
 ) {
+    val expirationTime: String = System.getenv("EXPIRATION_TIME");
 
-    fun findByToken(token: String): Optional<RefreshToken> {
+    fun findByToken(token: String): Optional<RefreshToken>? {
         return refreshTokenRepository.findByToken(token)
     }
 
     fun createRefreshToken(userId: Int): RefreshToken {
+        // create refresh token based on user id
         var refreshToken = RefreshToken(
             userRepository.findById(userId).get(),
             UUID.randomUUID().toString(),
-//            Instant.now().plusMillis(432000000) //5days
-            Instant.now().plusMillis(600000)//10mins
+            Instant.now().plusSeconds(expirationTime.toLong()*480)
         )
-
+        // saved refresh token in db
         refreshToken = refreshTokenRepository.save(refreshToken)
         return refreshToken
     }
 
     fun verifyExpiration(token: RefreshToken): RefreshToken {
-        if (token.expiryDate.compareTo(Instant.now()) < 0) {
+        if (token.expiryDate < Instant.now()) {
             refreshTokenRepository.delete(token)
             throw TokenRefreshException(token.token, "Refresh token was expired. signin again")
         }

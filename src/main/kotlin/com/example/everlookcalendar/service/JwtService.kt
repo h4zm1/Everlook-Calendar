@@ -46,17 +46,17 @@ class JwtService {
 
     fun generateJwtCookie(user: UserCred): ResponseCookie {
         val jwt = generateToken(user)
-        return generateCookie("jwt", jwt, "/auth")
+        return generateCookie("jwt", jwt, "/", expirationTime.toLong())
     }
 
     fun generateRefreshJwtCookie(refreshToken: String): ResponseCookie {
-        return generateCookie("jwt-refresh", refreshToken, "/auth/refreshtoken")
+        return generateCookie("jwt-refresh", refreshToken, "/",expirationTime.toLong()*480)
     }
 
-    fun generateCookie(name: String, value: String, path: String): ResponseCookie {
+    fun generateCookie(name: String, value: String, path: String, age:Long): ResponseCookie {
 
         val responseCookie =
-            ResponseCookie.from(name, value).path(path).maxAge(60).httpOnly(true).secure(true).sameSite("Strict")
+            ResponseCookie.from(name, value).path(path).maxAge(age).httpOnly(true).secure(true).sameSite("Strict")
                 .build()
         return responseCookie
     }

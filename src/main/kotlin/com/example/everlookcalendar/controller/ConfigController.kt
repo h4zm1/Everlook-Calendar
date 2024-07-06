@@ -37,10 +37,11 @@ class ConfigController(
         twentyDateRepo.save(newDate)
     }
 
-    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
+    @PreAuthorize("hasAuthority('ROLE_GUEST')")
     @PostMapping("/testAuth")
-    fun testAuth(@RequestBody data: String) {
+    fun testAuth(@RequestBody data: String):String {
         println("AUTHORIZED " + data)
+        return data
     }
 
     @PreAuthorize("hasAuthority('ROLE_ADMIN')")
