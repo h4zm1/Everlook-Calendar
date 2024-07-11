@@ -46,6 +46,7 @@ class JwtService {
 
     fun generateJwtCookie(user: UserCred): ResponseCookie {
         val jwt = generateToken(user)
+        println("jwt expiration:::: "+extractExpiration(jwt))
         return generateCookie("jwt", jwt, "/", expirationTime.toLong())
     }
 
@@ -101,7 +102,7 @@ class JwtService {
             .subject(subject)
             .id(id)
             .issuedAt(Date(System.currentTimeMillis()))
-            .expiration(Date(System.currentTimeMillis() + expirationTime.toInt()))
+            .expiration(Date(System.currentTimeMillis() + (expirationTime.toInt()*1000)))
             .signWith(getSignInKey(), io.jsonwebtoken.SignatureAlgorithm.HS256)
             .compact()
     }

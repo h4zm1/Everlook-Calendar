@@ -6,12 +6,15 @@ import com.example.everlookcalendar.data.TwentyManDate
 import com.example.everlookcalendar.repository.StartDateRepo
 import com.example.everlookcalendar.repository.ToggleDebugRepo
 import com.example.everlookcalendar.repository.TwentyDateRepo
+import kotlinx.coroutines.newSingleThreadContext
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.http.ResponseEntity
 import org.springframework.scheduling.annotation.EnableScheduling
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.*
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
+import java.time.format.DateTimeParseException
 
 
 @EnableScheduling
@@ -39,19 +42,30 @@ class ConfigController(
 
     @PreAuthorize("hasAuthority('ROLE_GUEST')")
     @PostMapping("/testAuth")
-    fun testAuth(@RequestBody data: String):String {
+    fun testAuth(@RequestBody data: String): String {
         println("AUTHORIZED " + data)
         return data
     }
 
     @PreAuthorize("hasAuthority('ROLE_ADMIN')")
-    @PostMapping("/update")
-    fun updateStartingDate(@RequestParam date: String) {
-        val newDate = StartDate()
-        newDate.date = date
+    @PostMapping("/updateStartDate")
+    fun updateStartingDate(@RequestBody dateWrapper: StartDate): ResponseEntity<Any> {
+        val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
+        val dateFormatted: LocalDate?
+        try {
+           dateFormatted =  LocalDate.parse(dateWrapper.date, formatter)
+        } catch (e: DateTimeParseException) {
+            return ResponseEntity.badRequest().body("Invalid date format")
+        }
+        // The emulation starts at 2023-12-01 so anything before that will mess things up.
+        if(dateFormatted.isBefore(LocalDate.parse("2023-12-01",formatter)))
+            return ResponseEntity.badRequest().body("The date must be after 2023-12-01")
+
         // making sure only 1 date exists in the database all the time
         startDateRepo.deleteAll()
-        startDateRepo.save(newDate)
+        startDateRepo.save(dateWrapper)
+
+        return ResponseEntity.ok("Date updated successfully")
     }
 
     @PreAuthorize("hasAuthority('ROLE_ADMIN')")

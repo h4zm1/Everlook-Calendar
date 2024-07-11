@@ -22,6 +22,8 @@ class JwtTokenFilter(
     override fun doFilterInternal(request: HttpServletRequest, response: HttpServletResponse, chain: FilterChain) {
         var userEmail = "";
         var jwtToken = "";
+        println("*****************FILTER***********")
+        println("FILTER URL "+request.requestURI)
 
         if (request.requestURI.contains("/login")) {
             chain.doFilter(request, response)
@@ -29,7 +31,7 @@ class JwtTokenFilter(
         }
         // try and get jwt from cookie, .toString to work around the null check
         jwtToken = jwtService.getJwtFromCookies(request).toString()
-
+        println("JWT   TOEKN " + jwtToken);
         if (jwtToken.isNotEmpty() && jwtService.validateJwtToken(jwtToken)) {
             try {
                 userEmail = jwtService.extractUsername(jwtToken)
@@ -45,6 +47,7 @@ class JwtTokenFilter(
         }
 
         if (userEmail.isNotEmpty() && SecurityContextHolder.getContext().authentication == null) {
+
             val userDetails: UserDetails = userDetailsService.loadUserByUsername(userEmail)
             if (jwtService.validateToken(jwtToken, userDetails)) {
                 val authenticationToken = UsernamePasswordAuthenticationToken(
