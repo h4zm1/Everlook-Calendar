@@ -1,5 +1,6 @@
 package com.example.everlookcalendar.repository
 
+import com.example.everlookcalendar.data.ConfigValues
 import com.example.everlookcalendar.data.Event
 import com.example.everlookcalendar.data.ToggleDebug
 import org.springframework.data.jpa.repository.JpaRepository
@@ -18,4 +19,8 @@ interface EventRepo : JpaRepository<Event, Long> {
 @Repository
 interface ToggleDebugRepo : CrudRepository<ToggleDebug, Int> {
 
+}
+@Repository
+interface ConfigRepo : JpaRepository<ConfigValues, Long> {
+    fun findFirstBy(): ConfigValues
 }

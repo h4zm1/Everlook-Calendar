@@ -1,6 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
-  <component name="CompilerConfiguration">
-    <bytecodeTargetLevel target="17" />
+  <component name="JavacSettings">
+    <option name="ADDITIONAL_OPTIONS_OVERRIDE">
+      <module name="EverlookCalendar" options="-parameters" />
+      <module name="EverlookCalendar.test" options="-parameters" />
+      <module name="com.TM.EverlookCalendar.main" options="-parameters" />
+    </option>
   </component>
 </project>

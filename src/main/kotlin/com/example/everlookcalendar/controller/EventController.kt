@@ -87,12 +87,13 @@ class RaidController(
     fun generateEvents(): List<Event> {
         // retrieving date from database
         // there's only and can only be 1 date in db
+        //TODO: remove starting date and change it with reset date
         val startDateFromDb = startDateRepo.findAll().first()
         val twentyDateFromDb = twentyDateRepo.findAll().first()
 
         val eventList = mutableListOf<Event>()
         var days = 90
-        val startingDate = LocalDate.parse(startDateFromDb.date, DateTimeFormatter.ISO_LOCAL_DATE)
+        val startingDate = LocalDate.parse(twentyDateFromDb.date, DateTimeFormatter.ISO_LOCAL_DATE)
         var zgReset = LocalDate.parse(twentyDateFromDb.date, DateTimeFormatter.ISO_LOCAL_DATE)
         var aq20Reset = LocalDate.parse(twentyDateFromDb.date, DateTimeFormatter.ISO_LOCAL_DATE)
         // these are the first reset days of raids in november 2023

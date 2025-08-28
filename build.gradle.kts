@@ -30,7 +30,7 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-data-jpa:3.1.2")
     implementation("io.jsonwebtoken:jjwt-api:0.12.5")
     implementation("com.sun.xml.security:xml-security-impl:1.0")
-    implementation("org.postgresql:postgresql:42.7.1")
+    implementation("org.postgresql:postgresql:42.7.7")
 
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.5.1")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core")

@@ -43,19 +43,28 @@ class AuthController(
 
     @PostMapping("/login")
     fun login(@RequestBody user: UserCred): ResponseEntity<Any> {
+        println("inside login-2")
         val authenticatedUser: UserCred = authService.authenticate(user)
+        println("inside login-1")
         val jwtCookie = jwtService.generateJwtCookie(authenticatedUser)
         // can't call transactional method from same class, so I had to do it here
         // making sure all previous refresh tokens are deleted upon login
+        println("inside login0")
         refreshTokenService.deleteByUserId(authenticatedUser.id)
+        println("inside login1")
+
         val refreshToken = refreshTokenService.createRefreshToken(authenticatedUser.id)
+        println("inside login2")
+
         val jwtRefreshCookie = jwtService.generateRefreshJwtCookie(refreshToken.token)
+        println("inside login3")
 
         println("login mail " + user.username + " role " + authenticatedUser.authorities)
         val data = mapOf(
 //            "token" to jwt  for Token,
 //            "expiresIn" to jwtService.expirationTime
-            "roles" to authenticatedUser.authorities
+            "roles" to authenticatedUser.authorities,
+            "email" to authenticatedUser.username
         )
 
         val headers = HttpHeaders()
@@ -87,29 +96,46 @@ class AuthController(
         val verifiedToken = refreshTokenService.verifyExpiration(storedRefreshToken.get())
 
         val jwtCookie = jwtService.generateJwtCookie(verifiedToken.user)
-        println("jwt cookie info::::: age "+jwtCookie.maxAge)
+        println("jwt cookie info::::: age " + jwtCookie.maxAge)
 //        println("jwt cookie info::::: "+jwtService.getJ)
 
         return ResponseEntity.ok().header(HttpHeaders.SET_COOKIE, jwtCookie.toString())
             .body("Token is refreshed successfully!")
     }
 
+
+    // used for auto login
     @PreAuthorize("hasAuthority('ROLE_ADMIN') or hasAuthority('ROLE_GUEST')")
     @GetMapping("/status")
-    fun checkAuthStatus(request: HttpServletRequest): ResponseEntity<Boolean> {
+    fun checkAuthStatus(request: HttpServletRequest): ResponseEntity<Any> {
         println("INSIDE STATUS")
-        // return 403 if there's no jwt cookie/token in the request
-        jwtService.getJwtFromCookies(request) ?: return ResponseEntity.status(HttpStatus.FORBIDDEN).body(false)
-        return ResponseEntity.ok(true)
+        val jwtFromCookie = jwtService.getJwtFromCookies(request)
+//        val data = mapOf(
+//            "status" to !jwtFromCookie.isNullOrBlank(),
+//            "email" to jwtService.extractUsername(jwtFromCookie)
+//        )
+        val data = buildMap {
+            put("status", !jwtFromCookie.isNullOrBlank())
+            if (jwtFromCookie.isNullOrBlank())
+                put("email", "")
+            if (!jwtFromCookie.isNullOrBlank())
+                put("email", jwtService.extractUsername(jwtFromCookie))
+
+//            else
+        }
+//        return ResponseEntity<Any>(data, HttpStatus.OK)
+
+//         return 403 if there's no jwt cookie/token in the request
+        jwtFromCookie ?: return ResponseEntity<Any>(data, HttpStatus.FORBIDDEN)
+//        jwtService.getJwtFromCookies(request) ?: return  ResponseEntity.ok(false)
+        return ResponseEntity<Any>(data, HttpStatus.OK)
     }
 
-    /// needs reworks, this function won't receive any data from the client
-    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
+    @PreAuthorize("hasAuthority('ROLE_ADMIN') or hasAuthority('ROLE_GUEST')")
     @PostMapping("/signout")
     fun logoutUser(request: HttpServletRequest): ResponseEntity<*> {
         val token = jwtService.getJwtFromCookies(request)
 
-        val userEmail = jwtService.extractUsername(token);
         val userId = jwtService.extractUserId(token);
 
         refreshTokenService.deleteByUserId(userId)
@@ -118,7 +144,8 @@ class AuthController(
         val jwtRefreshCookie: ResponseCookie = jwtService.getCleanRefreshToken()
 
         return ResponseEntity.ok().header(HttpHeaders.SET_COOKIE, jwtCookie.toString())
-            .header(HttpHeaders.SET_COOKIE, jwtRefreshCookie.toString()).body<Any>(("You've been signed out!"))
+            .header(HttpHeaders.SET_COOKIE, jwtRefreshCookie.toString())
+            .body("You've been signed out!")
     }
 
 

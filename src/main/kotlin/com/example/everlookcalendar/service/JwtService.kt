@@ -35,13 +35,12 @@ class JwtService {
     }
 
     fun getCleanJwtToken(): ResponseCookie {
-        val responseCookie = ResponseCookie.from("jwt", "").path("/auth").build()
-        return responseCookie
+        return generateCookie("jwt","", "/", 0)
+
     }
 
     fun getCleanRefreshToken(): ResponseCookie {
-        val responseCookie = ResponseCookie.from("jwt-refresh", "").path("/auth/refreshtoken").build()
-        return responseCookie
+        return generateCookie("jwt-refresh","", "/", 0)
     }
 
     fun generateJwtCookie(user: UserCred): ResponseCookie {

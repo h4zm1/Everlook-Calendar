@@ -1,12 +1,12 @@
 package com.example.everlookcalendar.controller
 
-import com.example.everlookcalendar.data.StartDate
+import com.example.everlookcalendar.data.ConfigValues
 import com.example.everlookcalendar.data.ToggleDebug
 import com.example.everlookcalendar.data.TwentyManDate
+import com.example.everlookcalendar.repository.ConfigRepo
 import com.example.everlookcalendar.repository.StartDateRepo
 import com.example.everlookcalendar.repository.ToggleDebugRepo
 import com.example.everlookcalendar.repository.TwentyDateRepo
-import kotlinx.coroutines.newSingleThreadContext
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.ResponseEntity
 import org.springframework.scheduling.annotation.EnableScheduling
@@ -24,6 +24,7 @@ class ConfigController(
     @Autowired private val startDateRepo: StartDateRepo,
     @Autowired val twentyDateRepo: TwentyDateRepo,
     @Autowired val toggleDebugRepo: ToggleDebugRepo,
+    private val configRepo: ConfigRepo,
 ) {
     companion object {
         var toggleState = "off"
@@ -47,26 +48,38 @@ class ConfigController(
         return data
     }
 
+
     @PreAuthorize("hasAuthority('ROLE_ADMIN')")
-    @PostMapping("/updateStartDate")
-    fun updateStartingDate(@RequestBody dateWrapper: StartDate): ResponseEntity<Any> {
-        val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
-        val dateFormatted: LocalDate?
-        try {
-           dateFormatted =  LocalDate.parse(dateWrapper.date, formatter)
-        } catch (e: DateTimeParseException) {
-            return ResponseEntity.badRequest().body("Invalid date format")
-        }
-        // The emulation starts at 2023-12-01 so anything before that will mess things up.
-        if(dateFormatted.isBefore(LocalDate.parse("2023-12-01",formatter)))
-            return ResponseEntity.badRequest().body("The date must be after 2023-12-01")
+    @PostMapping("/updateConfig")
+    fun updateConfig(@RequestBody configvalues: ConfigValues): ResponseEntity<Any> {
+        println("UPDATE CONFIG " + configvalues)
+        configRepo.deleteAll()
+        configRepo.save(configvalues)
+//        val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
+//        val dateFormatted: LocalDate?
+//        try {
+//            dateFormatted =  LocalDate.parse(dateWrapper.date, formatter)
+//        } catch (e: DateTimeParseException) {
+//            return ResponseEntity.badRequest().body("Invalid date format")
+//        }
+//        // The emulation starts at 2023-12-01 so anything before that will mess things up.
+//        if(dateFormatted.isBefore(LocalDate.parse("2023-12-01",formatter)))
+//            return ResponseEntity.badRequest().body("The date must be after 2023-12-01")
+//
+//        // making sure only 1 date exists in the database all the time
+//        startDateRepo.deleteAll()
+//        startDateRepo.save(dateWrapper)
 
-        // making sure only 1 date exists in the database all the time
-        startDateRepo.deleteAll()
-        startDateRepo.save(dateWrapper)
-
-        return ResponseEntity.ok("Date updated successfully")
+        return ResponseEntity.ok("config updated successfully")
     }
+
+    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
+    @GetMapping("/getConfig")
+    fun getConfig(): ConfigValues {
+        val config = configRepo.findFirstBy()
+        return config
+    }
+
 
     @PreAuthorize("hasAuthority('ROLE_ADMIN')")
     @GetMapping("/getToggle")

@@ -22,16 +22,17 @@ class JwtTokenFilter(
     override fun doFilterInternal(request: HttpServletRequest, response: HttpServletResponse, chain: FilterChain) {
         var userEmail = "";
         var jwtToken = "";
+        var path = request.requestURI
         println("*****************FILTER***********")
-        println("FILTER URL "+request.requestURI)
+        println("FILTER URL "+path)
 
-        if (request.requestURI.contains("/login")) {
+        if (path.contains("/login") || path.contains("/register")) {
             chain.doFilter(request, response)
             return
         }
         // try and get jwt from cookie, .toString to work around the null check
         jwtToken = jwtService.getJwtFromCookies(request).toString()
-        println("JWT   TOEKN " + jwtToken);
+        println("JWT><TOEKN: " + jwtToken);
         if (jwtToken.isNotEmpty() && jwtService.validateJwtToken(jwtToken)) {
             try {
                 userEmail = jwtService.extractUsername(jwtToken)
