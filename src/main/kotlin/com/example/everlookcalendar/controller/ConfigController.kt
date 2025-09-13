@@ -52,23 +52,9 @@ class ConfigController(
     @PreAuthorize("hasAuthority('ROLE_ADMIN')")
     @PostMapping("/updateConfig")
     fun updateConfig(@RequestBody configvalues: ConfigValues): ResponseEntity<Any> {
-        println("UPDATE CONFIG " + configvalues)
+        println("UPDATED CONFIG " + configvalues)
         configRepo.deleteAll()
         configRepo.save(configvalues)
-//        val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
-//        val dateFormatted: LocalDate?
-//        try {
-//            dateFormatted =  LocalDate.parse(dateWrapper.date, formatter)
-//        } catch (e: DateTimeParseException) {
-//            return ResponseEntity.badRequest().body("Invalid date format")
-//        }
-//        // The emulation starts at 2023-12-01 so anything before that will mess things up.
-//        if(dateFormatted.isBefore(LocalDate.parse("2023-12-01",formatter)))
-//            return ResponseEntity.badRequest().body("The date must be after 2023-12-01")
-//
-//        // making sure only 1 date exists in the database all the time
-//        startDateRepo.deleteAll()
-//        startDateRepo.save(dateWrapper)
 
         return ResponseEntity.ok("config updated successfully")
     }
@@ -76,6 +62,7 @@ class ConfigController(
     @PreAuthorize("hasAuthority('ROLE_ADMIN')")
     @GetMapping("/getConfig")
     fun getConfig(): ConfigValues {
+        println("loading config")
         val config = configRepo.findFirstBy()
         return config
     }

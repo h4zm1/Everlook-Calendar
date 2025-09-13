@@ -1,6 +1,8 @@
 package com.example.everlookcalendar.controller
 
 import com.example.everlookcalendar.data.Event
+import com.example.everlookcalendar.data.StartDate
+import com.example.everlookcalendar.repository.ConfigRepo
 import com.example.everlookcalendar.repository.StartDateRepo
 import com.example.everlookcalendar.repository.TwentyDateRepo
 import org.springframework.beans.factory.annotation.Autowired
@@ -54,7 +56,8 @@ class MainController {
 @RestController
 class RaidController(
     @Autowired private val startDateRepo: StartDateRepo,
-    @Autowired val twentyDateRepo: TwentyDateRepo
+    @Autowired val twentyDateRepo: TwentyDateRepo,
+    private val configRepo: ConfigRepo
 ) {
     @GetMapping("/api/time", produces = [MediaType.TEXT_EVENT_STREAM_VALUE])
     fun getOrderStatus(): SseEmitter {
@@ -84,27 +87,45 @@ class RaidController(
     // so the loop will keep  going till it reaches that date
     // when we reach that date a new countdown will start ticking inside the loop
     // and any event that happen starting from now will start getting registered into the final list
+
+    // we display 90 days on the list
+    // maybe save the event list in db? and update it whenever the current day change? maybe this will make it generate faster?
     fun generateEvents(): List<Event> {
         // retrieving date from database
         // there's only and can only be 1 date in db
         //TODO: remove starting date and change it with reset date
-        val startDateFromDb = startDateRepo.findAll().first()
+        var startDateFromDb = startDateRepo.findAll().firstOrNull()
+        if (startDateFromDb == null) {
+            startDateFromDb = StartDate(date = LocalDate.now().toString())
+            startDateRepo.save(startDateFromDb)
+//            println("startDateFromDb is ${startDateFromDb.date}")
+        }
         val twentyDateFromDb = twentyDateRepo.findAll().first()
+//        var dayCounter2 = LocalDate.parse(startDateFromDb.date)
+        println("startDateFromDb is ${startDateFromDb.date}")
+//        println("startDateFromDb REAL is "+ dayCounter2)
 
         val eventList = mutableListOf<Event>()
         var days = 90
-        val startingDate = LocalDate.parse(twentyDateFromDb.date, DateTimeFormatter.ISO_LOCAL_DATE)
-        var zgReset = LocalDate.parse(twentyDateFromDb.date, DateTimeFormatter.ISO_LOCAL_DATE)
-        var aq20Reset = LocalDate.parse(twentyDateFromDb.date, DateTimeFormatter.ISO_LOCAL_DATE)
-        // these are the first reset days of raids in november 2023
-        // TODO:: make a ui for inserting these dates instead of hardcoded
-        var onyReset = LocalDate.of(2023, 11, 4)
-        var bwlReset = LocalDate.of(2023, 11, 22)
-        var mcReset = LocalDate.of(2023, 11, 22)
-        var aq40Reset = LocalDate.of(2023, 11, 22)
-        var naxxReset = LocalDate.of(2023, 11, 22)
-        var dayCounter = LocalDate.of(2023, 11, 1)
-        var madnessReset = LocalDate.of(2023, 11, 7)
+//        val startingDate = LocalDate.parse(twentyDateFromDb.date, DateTimeFormatter.ISO_LOCAL_DATE)
+//        var zgReset = LocalDate.parse(twentyDateFromDb.date, DateTimeFormatter.ISO_LOCAL_DATE)
+//        var aq20Reset = LocalDate.parse(twentyDateFromDb.date, DateTimeFormatter.ISO_LOCAL_DATE)
+//        // these are the first reset days of raids in november 2023
+//        // TODO:: make a ui for inserting these dates instead of hardcoded
+//        var onyReset = LocalDate.of(2023, 11, 4)
+//        var bwlReset = LocalDate.of(2023, 11, 22)
+//        var mcReset = LocalDate.of(2023, 11, 22)
+//        var aq40Reset = LocalDate.of(2023, 11, 22)
+//        var naxxReset = LocalDate.of(2023, 11, 22)
+//        var dayCounter = LocalDate.of(2023, 11, 1)
+
+        var dayCounter = LocalDate.parse(startDateFromDb.date)
+        var m20ResetDate = LocalDate.now()  // temp value just for init, will get replaced with actual reset date
+//        var madnessReset = LocalDate.of(2023, 11, 7)
+        val config = configRepo.findFirstBy()
+
+
+        var foundM20 = false // marking the first occurrence of m20 reset day
 
         var madnessIndex = 0
         var madnessBoss = ""
@@ -122,10 +143,11 @@ class RaidController(
         var pvpIndex = 0
 
         while (true) {
+            println("***************************************")
             // startingDate is retrieved from database
             // so the loop will keep on going till it reaches that day
-            if (dayCounter.isEqual(startingDate))
-                registeringEvents = true
+//            if (dayCounter.isEqual(startingDate))
+//                registeringEvents = true
 
 
             val event = Event()
@@ -135,15 +157,15 @@ class RaidController(
 
 
             // Changing madness bosses every 2 weeks in order
-            if (madnessReset.dayOfMonth == dayCounter.dayOfMonth) {
-                eventUp = true
-                madnessEvent.madness = 1
-                madnessEvent.madnessBoss = Madness.entries[madnessIndex].name
-                // This will be 0 -> 1 -> 2 -> 3 -> 0 ...
-                madnessIndex = (madnessIndex + 1) % Madness.entries.size
-                madnessReset = madnessReset.plusDays(14)
-                madnessBoss = madnessEvent.madnessBoss
-            }
+//            if (madnessReset.dayOfMonth == dayCounter.dayOfMonth) {
+//                eventUp = true
+//                madnessEvent.madness = 1
+//                madnessEvent.madnessBoss = Madness.entries[madnessIndex].name
+//                // This will be 0 -> 1 -> 2 -> 3 -> 0 ...
+//                madnessIndex = (madnessIndex + 1) % Madness.entries.size
+//                madnessReset = madnessReset.plusDays(14)
+//                madnessBoss = madnessEvent.madnessBoss
+//            }
 
             // If dmf in mulgore then day == first friday in a month then dmf will be the following monday
             // if dmf in elwynn then day = first monday of month
@@ -152,120 +174,140 @@ class RaidController(
                 dmfOver = false
             }
             val dayName = dayCounter.dayOfWeek.name
-            if (dmfInMulgor) { // if dmf should be in mulgore
-                if (dayName.equals("FRIDAY") && newMonth)
-                    firstFriday = true
-                if (dayName.equals("MONDAY") && firstFriday) {
-                    firstFriday = false
-                    newMonth = false
-                    eventUp = true
-                    dmfUp = true
-                    dmfEvent.dmf = "+mulgore"
-                }
-            } else { // if dmf should be in elwynn
-                if (dayName.equals("MONDAY") && !dmfOver) {
-                    newMonth = false
-                    eventUp = true
-                    dmfUp = true
-                    dmfEvent.dmf = "+elwynn"
-                }
-            }
+//            if (dmfInMulgor) { // if dmf should be in mulgore
+//                if (dayName.equals("FRIDAY") && newMonth)
+//                    firstFriday = true
+//                if (dayName.equals("MONDAY") && firstFriday) {
+//                    firstFriday = false
+//                    newMonth = false
+//                    eventUp = true
+//                    dmfUp = true
+//                    dmfEvent.dmf = "+mulgore"
+//                }
+//            } else { // if dmf should be in elwynn
+//                if (dayName.equals("MONDAY") && !dmfOver) {
+//                    newMonth = false
+//                    eventUp = true
+//                    dmfUp = true
+//                    dmfEvent.dmf = "+elwynn"
+//                }
+//            }
             // creating dmf ending event
-            if (dmfUp) {
-                dmfDayCounter++
-                if (dmfDayCounter == 7) {
-                    eventUp = true
-                    if (dmfInMulgor) {
-                        dmfEvent.dmf = "-mulgore"
-                        dmfInMulgor = false
-                        dmfUp = false
-                        dmfDayCounter = 0
-                        dmfOver = true
-                    } else {
-                        dmfEvent.dmf = "-elwynn"
-                        dmfInMulgor = true
-                        dmfUp = false
-                        dmfDayCounter = 0
-
-                    }
-                }
-            }
+//            if (dmfUp) {
+//                dmfDayCounter++
+//                if (dmfDayCounter == 7) {
+//                    eventUp = true
+//                    if (dmfInMulgor) {
+//                        dmfEvent.dmf = "-mulgore"
+//                        dmfInMulgor = false
+//                        dmfUp = false
+//                        dmfDayCounter = 0
+//                        dmfOver = true
+//                    } else {
+//                        dmfEvent.dmf = "-elwynn"
+//                        dmfInMulgor = true
+//                        dmfUp = false
+//                        dmfDayCounter = 0
+//
+//                    }
+//                }
+//            }
             // PVP
-            if (dayName.equals("THURSDAY")) {
-                eventUp = true
-                pvpEvent.pvp = Battlegrounds.entries[pvpIndex].name + "s"
-                if (Battlegrounds.entries[pvpIndex].name == "none")
-                    pvpEvent.pvp = ""
-                pvpWeekend = Battlegrounds.entries[pvpIndex].name
-                // This will be 0 -> 1 -> 2 -> 3 -> 0 ...
-                pvpIndex = (pvpIndex + 1) % Battlegrounds.entries.size
-
-            }
-            if (dayName.equals("MONDAY") && pvpWeekend.isNotEmpty()) {
-                eventUp = true
-                pvpEvent.pvp = pvpWeekend + "e"
-                pvpWeekend = ""
-            }
+//            if (dayName.equals("THURSDAY")) {
+//                eventUp = true
+//                pvpEvent.pvp = Battlegrounds.entries[pvpIndex].name + "s"
+//                if (Battlegrounds.entries[pvpIndex].name == "none")
+//                    pvpEvent.pvp = ""
+//                pvpWeekend = Battlegrounds.entries[pvpIndex].name
+//                // This will be 0 -> 1 -> 2 -> 3 -> 0 ...
+//                pvpIndex = (pvpIndex + 1) % Battlegrounds.entries.size
+//
+//            }
+//            if (dayName.equals("MONDAY") && pvpWeekend.isNotEmpty()) {
+//                eventUp = true
+//                pvpEvent.pvp = pvpWeekend + "e"
+//                pvpWeekend = ""
+//            }
             // zgReset.get(Calendar.day of month) will return what day of the month the zgReset date corresponds to
             // we compare that value to what day the counter is at right now
             // the zgReset date will get incremented if the condition is met and the day counter is increased at the end bellow.
-            if (zgReset.dayOfMonth == dayCounter.dayOfMonth) {
-                eventUp = true
-                raidUp = true
-                event.zg = 1
-                // 1st day of november is a reset day, so in the 3rd day of november will be another reset
-                // 3 days interval
-                zgReset = zgReset.plusDays(3)
-            }
-            if (onyReset.dayOfMonth == dayCounter.dayOfMonth) {
+//            if (zgReset.dayOfMonth == dayCounter.dayOfMonth) {
+//                eventUp = true
+//                raidUp = true
+//                event.zg = 1
+//                // 1st day of november is a reset day, so in the 3rd day of november will be another reset
+//                // 3 days interval
+//                zgReset = zgReset.plusDays(3)
+//            }
+            if (config.m20.equals(dayName.take(2), ignoreCase = true) && !foundM20) {
+                foundM20 = true
                 eventUp = true
                 raidUp = true
                 event.ony = 1
                 // 5 days interval
-                onyReset = onyReset.plusDays(5)
+                m20ResetDate = dayCounter.plusDays(5)
+                println(m20ResetDate.dayOfMonth.toString() + "inside M22222222222222222222222222222222222222222222222220 "+ dayCounter.dayOfMonth)
             }
-            if (aq20Reset.dayOfMonth == dayCounter.dayOfMonth) {
+            if (m20ResetDate.dayOfMonth == dayCounter.dayOfMonth && foundM20) {
+                println("inside M222222222222222222222222222222222222222222222222222222222222220")
                 eventUp = true
                 raidUp = true
-                event.aq20 = 1
-                // 3 days interval
-                aq20Reset = aq20Reset.plusDays(3)
+                event.ony = 1
+                m20ResetDate = dayCounter.plusDays(5)
             }
-            if (bwlReset.dayOfMonth == dayCounter.dayOfMonth) {
-                eventUp = true
-                raidUp = true
-                event.bwl = 1
-                // 7 days interval
-                bwlReset = bwlReset.plusDays(7)
-            }
-            if (mcReset.dayOfMonth == dayCounter.dayOfMonth) {
+//            if (aq20Reset.dayOfMonth == dayCounter.dayOfMonth) {
+//                eventUp = true
+//                raidUp = true
+//                event.aq20 = 1
+//                // 3 days interval
+//                aq20Reset = aq20Reset.plusDays(3)
+//            }
+//            if (bwlReset.dayOfMonth == dayCounter.dayOfMonth) {
+//                eventUp = true
+//                raidUp = true
+//                event.bwl = 1
+//                // 7 days interval
+//                bwlReset = bwlReset.plusDays(7)
+//            }
+
+            if (config.m40.equals(dayName.take(2), ignoreCase = true)) {
+                println("inside M40")
                 eventUp = true
                 raidUp = true
                 event.mc = 1
-                // 7 days interval
-                mcReset = mcReset.plusDays(7)
-            }
-            if (aq40Reset.dayOfMonth == dayCounter.dayOfMonth) {
-                eventUp = true
-                raidUp = true
+                event.bwl = 1
                 event.aq40 = 1
-                // 7 days interval
-                aq40Reset = aq40Reset.plusDays(7)
-            }
-            if (naxxReset.dayOfMonth == dayCounter.dayOfMonth) {
-                eventUp = true
-                raidUp = true
+                event.kara40 = 1
                 event.naxx = 1
-                // 7 days interval
-                naxxReset = naxxReset.plusDays(7)
             }
+//            if (mcReset.dayOfMonth == dayCounter.dayOfMonth) {
+//                eventUp = true
+//                raidUp = true
+//                event.mc = 1
+//                // 7 days interval
+//                mcReset = mcReset.plusDays(7)
+//            }
+//            if (aq40Reset.dayOfMonth == dayCounter.dayOfMonth) {
+//                eventUp = true
+//                raidUp = true
+//                event.aq40 = 1
+//                // 7 days interval
+//                aq40Reset = aq40Reset.plusDays(7)
+//            }
+//            if (naxxReset.dayOfMonth == dayCounter.dayOfMonth) {
+//                eventUp = true
+//                raidUp = true
+//                event.naxx = 1
+//                // 7 days interval
+//                naxxReset = naxxReset.plusDays(7)
+//            }
 
-//            val event = Event(0, 0, 0, 0, 1, "mulgore", 0, "", "", 1, "abc 2023-07-01")
+/////            val event = Event(0, 0, 0, 0, 1, "mulgore", 0, "", "", 1, "abc 2023-07-01")
 
             // this will get triggered only when there's an event
             // this means that some days may end up with no events in them ofc
             // also won't get triggered if the loop didn't reach the starting date
-            if (eventUp && registeringEvents) {
+            if (eventUp) {
                 event.madnessBoss = madnessBoss
                 // Setting up event date
                 val formatter = DateTimeFormatter.ofPattern("yyyy-MM")
@@ -275,37 +317,44 @@ class RaidController(
                 event.date = "abc $formattedDate-${f.format(dayCounter.dayOfMonth)}"
                 event.old = 1
                 // Separating dmf entries from the rest
-                if (dmfEvent.dmf.length > 2) {
-                    dmfEvent.date = "abc $formattedDate-${f.format(dayCounter.dayOfMonth)}"
-                    dmfEvent.old = 1
-                    eventList.add(dmfEvent)
-                }
-                // Separating madness entries from the rest
-                if (madnessEvent.madnessBoss.isNotEmpty()) {
-                    madnessEvent.date = "abc $formattedDate-${f.format(dayCounter.dayOfMonth)}"
-                    madnessEvent.old = 1
-                    eventList.add(madnessEvent)
-                }
-                //
-                if (pvpEvent.pvp.isNotEmpty()) {
-                    pvpEvent.date = "abc $formattedDate-${f.format(dayCounter.dayOfMonth)}"
-                    pvpEvent.old = 1
-                    eventList.add(pvpEvent)
-                }
+//                if (dmfEvent.dmf.length > 2) {
+////                    dmfEvent.date = "abc $formattedDate-${f.format(dayCounter.dayOfMonth)}"
+//                    dmfEvent.old = 1
+//                    eventList.add(dmfEvent)
+//                }
+//                // Separating madness entries from the rest
+//                if (madnessEvent.madnessBoss.isNotEmpty()) {
+////                    madnessEvent.date = "abc $formattedDate-${f.format(dayCounter.dayOfMonth)}"
+//                    madnessEvent.old = 1
+//                    eventList.add(madnessEvent)
+//                }
+//                //
+//                if (pvpEvent.pvp.isNotEmpty()) {
+////                    pvpEvent.date = "abc $formattedDate-${f.format(dayCounter.dayOfMonth)}"
+//                    pvpEvent.old = 1
+//                    eventList.add(pvpEvent)
+//                }
                 if (raidUp)
                     eventList.add(event)
             }
             eventUp = false
             raidUp = false
+
+            println(dayName + "daycounter " + dayCounter)
+            println("evenlist " + eventList.size)
+
+
             // daycounter is how we track what day the loop is at
             dayCounter = dayCounter.plusDays(1)
             // days = 90 so the loop will stop after 90 cycles
             // and the countdown only start ticking after reaching the starting date
-            if (registeringEvents) {
-                days--
-                if (days == -1)
-                    break
-            }
+//            if (registeringEvents) {
+//            println("day "+ (90-days))
+
+            days--
+            if (days == 0)
+                break
+//            }
         }
         return eventList
     }
@@ -343,47 +392,53 @@ class RaidController(
 //    @HxRequest // Prevent getting called from url directly
     fun getEvents(): List<Event> {
 
-        var changeAll = false
-        val currentDate = LocalDate.now()
-//        val eventList: List<Event> = service.getAllEvents().sortedBy { it.date }
-        val eventList = generateEvents().sortedBy { it.date }
+        val eventList = mutableListOf<Event>()
+        val event1 = Event(0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, "mulgore", 0, "", "", 1, "abc 2023-07-01")
+        val event2 = Event(0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, "mulgore", 0, "", "", 1, "abc 2023-07-01")
+        eventList.add(event1)
+        eventList.add(event2)
 
-        for (event in eventList) {
-            // Decoding pvp string only when their value is default
-            // to avoid concatenation of old decoded values
-            if (event.pvp.isNotEmpty() && (!event.pvp.contains("start") && !event.pvp.contains("ends")))
-                event.pvp = getPvpString(event.pvp)
+//        var changeAll = false
+//        val currentDate = LocalDate.now()
+////        val eventList: List<Event> = service.getAllEvents().sortedBy { it.date }
+        val eventList2 = generateEvents().sortedBy { it.date }
 
-            val parseableEventDate = event.date.substring(4, event.date.length)
-            val eventDate = LocalDate.parse(parseableEventDate)
-            // If an even date is the same or still didn't come
-            if (currentDate <= eventDate || changeAll) {
-                event.old = 0
-                changeAll = true
-            }
-
-            // Setting up dmf
-            if (event.dmf.length > 2) {
-                if (event.dmf[0].toString().first() == '+') {
-                    if (event.dmf.contains("mulgore"))
-                        event.dmf = "Darkmoon Faire - Mulgore"
-                    else
-                        event.dmf = "Darkmoon Faire - Elwynn Forest"
-                } else {
-                    event.dmf = "Darkmoon Faire ends"
-                }
-            }
-
-            // Fixing madness names
-            if (event.madnessBoss == "Hazzarah")
-                event.madnessBoss = "Hazza'rah"
-            if (event.madnessBoss == "Grilek")
-                event.madnessBoss = "Gri'lek"
-
-            // Adding small day name in front of every date
-            event.date = eventDate.dayOfWeek.getDisplayName(TextStyle.SHORT, Locale.ENGLISH)
-                .toString() + " " + parseableEventDate + " 03:00 ST"
-        }
+//        for (event in eventList) {
+//            // Decoding pvp string only when their value is default
+//            // to avoid concatenation of old decoded values
+//            if (event.pvp.isNotEmpty() && (!event.pvp.contains("start") && !event.pvp.contains("ends")))
+//                event.pvp = getPvpString(event.pvp)
+//
+//            val parseableEventDate = event.date.substring(4, event.date.length)
+//            val eventDate = LocalDate.parse(parseableEventDate)
+//            // If an even date is the same or still didn't come
+//            if (currentDate <= eventDate || changeAll) {
+//                event.old = 0
+//                changeAll = true
+//            }
+//
+//            // Setting up dmf
+//            if (event.dmf.length > 2) {
+//                if (event.dmf[0].toString().first() == '+') {
+//                    if (event.dmf.contains("mulgore"))
+//                        event.dmf = "Darkmoon Faire - Mulgore"
+//                    else
+//                        event.dmf = "Darkmoon Faire - Elwynn Forest"
+//                } else {
+//                    event.dmf = "Darkmoon Faire ends"
+//                }
+//            }
+//
+//            // Fixing madness names
+//            if (event.madnessBoss == "Hazzarah")
+//                event.madnessBoss = "Hazza'rah"
+//            if (event.madnessBoss == "Grilek")
+//                event.madnessBoss = "Gri'lek"
+//
+//            // Adding small day name in front of every date
+//            event.date = eventDate.dayOfWeek.getDisplayName(TextStyle.SHORT, Locale.ENGLISH)
+//                .toString() + " " + parseableEventDate + " 03:00 ST"
+//        }
         return eventList
     }
 }

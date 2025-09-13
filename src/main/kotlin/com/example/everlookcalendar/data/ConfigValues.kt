@@ -14,10 +14,8 @@ data class ConfigValues(
         var m20: String = "",
         var ony: String = "",
         var dmf: String = "",
-//        @Column(name = "\"dmfLocation\"")  // Note the escaped quotes
         var dmfLocation: String = "",
-//        @Column(name = "\"madnessBoss\"")
         var madnessBoss: String = "",
-//        @Column(name = "\"madnessWeek\"")
-        var madnessWeek: String = ""
+        var madnessWeek: String = "",
+        var resetTime: String = ""
 )
