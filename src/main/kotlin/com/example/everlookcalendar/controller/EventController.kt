@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.*
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter
 import java.text.DecimalFormat
 import java.text.NumberFormat
+import java.time.DayOfWeek
 import java.time.LocalDate
 import java.time.LocalTime
 import java.time.format.DateTimeFormatter
@@ -94,71 +95,53 @@ class RaidController(
         // retrieving date from database
         // there's only and can only be 1 date in db
         //TODO: remove starting date and change it with reset date
-        var startDateFromDb = startDateRepo.findAll().firstOrNull()
-        if (startDateFromDb == null) {
-            startDateFromDb = StartDate(date = LocalDate.now().toString())
-            startDateRepo.save(startDateFromDb)
-//            println("startDateFromDb is ${startDateFromDb.date}")
-        }
-        val twentyDateFromDb = twentyDateRepo.findAll().first()
+        val config = configRepo.findFirstBy()
+        val startDateFromDb = config.startDate
+//        if (startDateFromDb == null) {
+//            startDateFromDb = StartDate(date = LocalDate.now().toString())
+//            startDateRepo.save(startDateFromDb)
+////            println("startDateFromDb is ${startDateFromDb.date}")
+//        }
+//        twentyDateRepo.findAll().first()
 //        var dayCounter2 = LocalDate.parse(startDateFromDb.date)
-        println("startDateFromDb is ${startDateFromDb.date}")
+        println("startDateFromDb is ${startDateFromDb}")
 //        println("startDateFromDb REAL is "+ dayCounter2)
 
         val eventList = mutableListOf<Event>()
         var days = 90
-//        val startingDate = LocalDate.parse(twentyDateFromDb.date, DateTimeFormatter.ISO_LOCAL_DATE)
-//        var zgReset = LocalDate.parse(twentyDateFromDb.date, DateTimeFormatter.ISO_LOCAL_DATE)
-//        var aq20Reset = LocalDate.parse(twentyDateFromDb.date, DateTimeFormatter.ISO_LOCAL_DATE)
-//        // these are the first reset days of raids in november 2023
-//        // TODO:: make a ui for inserting these dates instead of hardcoded
-//        var onyReset = LocalDate.of(2023, 11, 4)
-//        var bwlReset = LocalDate.of(2023, 11, 22)
-//        var mcReset = LocalDate.of(2023, 11, 22)
-//        var aq40Reset = LocalDate.of(2023, 11, 22)
-//        var naxxReset = LocalDate.of(2023, 11, 22)
-//        var dayCounter = LocalDate.of(2023, 11, 1)
 
-        var dayCounter = LocalDate.parse(startDateFromDb.date)
+
+        var dayCounter = LocalDate.parse(startDateFromDb)
         var m20ResetDate = LocalDate.now()  // temp value just for init, will get replaced with actual reset date
         var onyResetDate = LocalDate.now()  // temp value just for init, will get replaced with actual reset date
         var madnessReset = LocalDate.now()  // temp value just for init, will get replaced with actual reset date
-        val config = configRepo.findFirstBy()
+        var k10ResetDate = LocalDate.now()
+
 
 
         var foundM20 = false // marking the first occurrence of aq20/zg reset day
         var foundOny = false // marking the first occurrence of ony reset day
         var foundMadness = false // marking the first occurrence of madness start day
         var foundDmf = false // marking the first occurrence of madness start day
+        var foundK10 = false
+        var tempDayHolderForDMF = ""
 
         var madnessIndex = config.madnessBoss.toInt()
         var madnessBoss = ""
         val f: NumberFormat = DecimalFormat("00")
         var eventUp = false // Tracking if there's events
         var newMonth = false
-        var lastWeekWasMulgore = false
-        var registeringEvents = false
-        var firstFriday = false
         var dmfInMulgor = true
-        var dmfUp = false
         var dmfOver = false
         var raidUp = false
-        var dmfDayCounter = 0
-        var pvpWeekend = ""
-        var pvpIndex = 0
+        ""
 
         while (true) {
             println("***************************************")
-            // startingDate is retrieved from database
-            // so the loop will keep on going till it reaches that day
-//            if (dayCounter.isEqual(startingDate))
-//                registeringEvents = true
-
-
             val event = Event()
             val dmfEvent = Event()
             val madnessEvent = Event()
-            val pvpEvent = Event()
+            Event()
 
             if (dayCounter.dayOfMonth == 1) {
                 newMonth = true
@@ -187,63 +170,25 @@ class RaidController(
                 madnessBoss = madnessEvent.madnessBoss
             }
 
-            // If dmf in mulgore then day == first friday in a month then dmf will be the following monday
-            // if dmf in elwynn then day = first monday of month
-
             //dmf move out every wednesday
-
-            if (config.dmf.equals(dayName.take(2), ignoreCase = true) && !foundDmf) {
+            if (config.dmf.equals(dayName.take(2), ignoreCase = true)) {
+                tempDayHolderForDMF = dayCounter.dayOfWeek.plus(1).name
+                eventUp = true
+                dmfEvent.dmf = "Darkmoon Faire moving out"
+            }
+            if (tempDayHolderForDMF == dayName && !foundDmf) {
                 eventUp = true
                 dmfEvent.dmf = config.dmfLocation
-                dmfInMulgor = if(config.dmfLocation == "elwynn") false else true
+                dmfInMulgor = config.dmfLocation != "elwynn"
                 foundDmf = true
             }
-            if (config.dmf.equals(dayName.take(2), ignoreCase = true) && foundDmf) {
-
+            if (tempDayHolderForDMF == dayName && foundDmf) {
                 eventUp = true
                 dmfEvent.dmf = if(dmfInMulgor) "mulgore" else "elwynn"
                 dmfInMulgor = !dmfInMulgor
-
             }
 
-//            if (dmfInMulgor) { // if dmf should be in mulgore
-//                if (dayName.equals("FRIDAY") && newMonth)
-//                    firstFriday = true
-//                if (dayName.equals("MONDAY") && firstFriday) {
-//                    firstFriday = false
-//                    newMonth = false
-//                    eventUp = true
-//                    dmfUp = true
-//                    dmfEvent.dmf = "+mulgore"
-//                }
-//            } else { // if dmf should be in elwynn
-//                if (dayName.equals("MONDAY") && !dmfOver) {
-//                    newMonth = false
-//                    eventUp = true
-//                    dmfUp = true
-//                    dmfEvent.dmf = "+elwynn"
-//                }
-//            }
-            // creating dmf ending event
-//            if (dmfUp) {
-//                dmfDayCounter++
-//                if (dmfDayCounter == 7) {
-//                    eventUp = true
-//                    if (dmfInMulgor) {
-//                        dmfEvent.dmf = "-mulgore"
-//                        dmfInMulgor = false
-//                        dmfUp = false
-//                        dmfDayCounter = 0
-//                        dmfOver = true
-//                    } else {
-//                        dmfEvent.dmf = "-elwynn"
-//                        dmfInMulgor = true
-//                        dmfUp = false
-//                        dmfDayCounter = 0
-//
-//                    }
-//                }
-//            }
+
             // PVP
 //            if (dayName.equals("THURSDAY")) {
 //                eventUp = true
@@ -260,17 +205,7 @@ class RaidController(
 //                pvpEvent.pvp = pvpWeekend + "e"
 //                pvpWeekend = ""
 //            }
-            // zgReset.get(Calendar.day of month) will return what day of the month the zgReset date corresponds to
-            // we compare that value to what day the counter is at right now
-            // the zgReset date will get incremented if the condition is met and the day counter is increased at the end bellow.
-//            if (zgReset.dayOfMonth == dayCounter.dayOfMonth) {
-//                eventUp = true
-//                raidUp = true
-//                event.zg = 1
-//                // 1st day of november is a reset day, so in the 3rd day of november will be another reset
-//                // 3 days interval
-//                zgReset = zgReset.plusDays(3)
-//            }
+
             // registering the first reset date based on "next reset" in the ui
             if (config.m20.equals(dayName.take(2), ignoreCase = true) && !foundM20) {
                 foundM20 = true
@@ -307,6 +242,22 @@ class RaidController(
                 onyResetDate = dayCounter.plusDays(5)
             }
 
+            // for k10
+            if(config.k10.equals(dayName.take(2), ignoreCase = true) && !foundK10) {
+                foundK10 = true;
+                eventUp = true
+                raidUp = true
+                event.k10 = 1
+                // 5 days interval
+                k10ResetDate = dayCounter.plusDays(5)
+            }
+            if(k10ResetDate.dayOfMonth == dayCounter.dayOfMonth && foundK10) {
+                eventUp = true
+                raidUp = true
+                event.k10 = 1
+                k10ResetDate = dayCounter.plusDays(5)
+            }
+
             //  since this resets every 7 days we can just set the exact day
             if (config.m40.equals(dayName.take(2), ignoreCase = true)) {
                 println("inside M40")
@@ -315,8 +266,9 @@ class RaidController(
                 event.mc = 1
                 event.bwl = 1
                 event.aq40 = 1
-                event.kara40 = 1
+                event.k40 = 1
                 event.naxx = 1
+                event.es = 1
             }
 
 
@@ -409,19 +361,14 @@ class RaidController(
     @GetMapping("/api/events")
 //    @HxRequest // Prevent getting called from url directly
     fun getEvents(): List<Event> {
-
-//        val eventList = mutableListOf<Event>()
-//        val event1 = Event(0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, "mulgore", 0, "", "", 1, "abc 2023-07-01")
-//        val event2 = Event(0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, "mulgore", 0, "", "", 1, "abc 2023-07-01")
-//        eventList.add(event1)
-//        eventList.add(event2)
-
         var changeAll = false
+        var idCounter = -1
         val currentDate = LocalDate.now()
 //        val eventList: List<Event> = service.getAllEvents().sortedBy { it.date }
         val eventList = generateEvents().sortedBy { it.date }
 
         for (event in eventList) {
+            event.id = idCounter++
             // Decoding pvp string only when their value is default
             // to avoid concatenation of old decoded values
             if (event.pvp.isNotEmpty() && (!event.pvp.contains("start") && !event.pvp.contains("ends")))
@@ -439,8 +386,10 @@ class RaidController(
             if (event.dmf.length > 2) {
                     if (event.dmf.contains("mulgore"))
                         event.dmf = "Darkmoon Faire - Mulgore"
-                    else
+                    else if (event.dmf.contains("elwynn"))
                         event.dmf = "Darkmoon Faire - Elwynn Forest"
+                else
+                    event.dmf = "DMF moving out"
             }
 
             // Fixing madness names
