@@ -4,7 +4,6 @@ import com.example.everlookcalendar.data.Event
 import com.example.everlookcalendar.data.StartDate
 import com.example.everlookcalendar.repository.ConfigRepo
 import com.example.everlookcalendar.repository.StartDateRepo
-import com.example.everlookcalendar.repository.TwentyDateRepo
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.MediaType
 import org.springframework.scheduling.annotation.EnableScheduling
@@ -57,7 +56,6 @@ class MainController {
 @RestController
 class RaidController(
     @Autowired private val startDateRepo: StartDateRepo,
-    @Autowired val twentyDateRepo: TwentyDateRepo,
     private val configRepo: ConfigRepo
 ) {
     @GetMapping("/api/time", produces = [MediaType.TEXT_EVENT_STREAM_VALUE])

@@ -2,12 +2,15 @@ package com.example.everlookcalendar.repository
 
 import com.example.everlookcalendar.data.Authority
 import com.example.everlookcalendar.data.UserAuthority
+import com.example.everlookcalendar.data.UserCred
 import org.springframework.data.repository.CrudRepository
 import org.springframework.stereotype.Repository
 import java.util.*
 
 @Repository
-interface AuthRepo : CrudRepository<UserAuthority, Int>
+interface AuthRepo : CrudRepository<UserAuthority, Int>{
+    fun findByUser(user: UserCred): UserAuthority
+}
 
 @Repository
 interface RoleRepo : CrudRepository<Authority, Int> {

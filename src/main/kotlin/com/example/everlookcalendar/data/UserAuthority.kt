@@ -7,7 +7,7 @@ import jakarta.persistence.*
 class UserAuthority(
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    var id: Long? = -1,
+    var id: Long = -1,
     @ManyToOne
     @JoinColumn(name = "user_id")
     var user: UserCred,
@@ -15,5 +15,5 @@ class UserAuthority(
     @JoinColumn(name = "authority_id")
     var authority: Authority
 ) {
-    constructor(user: UserCred, authority: Authority) : this(-1, user, authority)
+    constructor(user: UserCred, authority: Authority?) : this(-1, user, authority!!)
 }
