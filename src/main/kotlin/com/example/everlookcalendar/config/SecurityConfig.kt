@@ -7,6 +7,7 @@ import org.springframework.context.annotation.Configuration
 import org.springframework.core.env.Environment
 import org.springframework.security.authentication.AuthenticationManager
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity
 import org.springframework.security.config.annotation.web.invoke
@@ -22,6 +23,7 @@ import org.springframework.web.filter.CorsFilter
 
 @Configuration
 @EnableWebSecurity
+@EnableMethodSecurity
 class SecurityConfig(@Autowired val env: Environment, @Autowired val userRepo: UserRepo) {
     private final val allowedOrigins = env.getProperty("CORS-ORIGINS", String::class.java)
     val allowedOriginsList = allowedOrigins?.split(",")?.map { it.trim() } ?: listOf()

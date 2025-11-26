@@ -49,6 +49,7 @@ dependencies {
     implementation("org.springframework.security:spring-security-core")
     implementation("org.springframework.security:spring-security-config")
     testImplementation("org.springframework.boot:spring-boot-starter-test")
+    implementation("org.springframework.boot:spring-boot-starter-mail")
 
 
 }

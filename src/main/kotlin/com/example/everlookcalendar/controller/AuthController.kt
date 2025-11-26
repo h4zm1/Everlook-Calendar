@@ -14,6 +14,7 @@ import jakarta.servlet.http.HttpServletRequest
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus
+import org.springframework.http.MediaType
 import org.springframework.http.ResponseCookie
 import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize
@@ -45,6 +46,17 @@ class AuthController(
     fun login(@RequestBody user: UserCred): ResponseEntity<Any> {
         println("inside login-2")
         val authenticatedUser: UserCred = authService.authenticate(user)
+        // check role
+        if (authenticatedUser.authorities.first().authority == "ROLE_USER") {
+            println("USER tried to log in")
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(mapOf(
+                    "error" to "You don't have access yet. Wait for an email confirmation.",
+                    "errorCode" to "ROLE_RESTRICTED",
+                    "type" to "authorization"
+                ))
+        }
         println("inside login-1")
         val jwtCookie = jwtService.generateJwtCookie(authenticatedUser)
         // can't call transactional method from same class, so I had to do it here
@@ -78,7 +90,7 @@ class AuthController(
     fun register(@RequestBody cred: UserCred): ResponseEntity<String> {
         val user = UserCred(cred.username, passwordEncoder.encode(cred.password))
         val savedUser = userRepo.save(user)
-        authRepo.save(UserAuthority(savedUser, roleRepo.findByName("ROLE_GUEST").get()))
+        authRepo.save(UserAuthority(savedUser, roleRepo.findByName("ROLE_USER").get()))
         return ResponseEntity.ok("User registered successfully!");
     }
 
