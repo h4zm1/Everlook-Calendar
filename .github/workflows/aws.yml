@@ -2,7 +2,7 @@ name: Deploy backend
 
 on:
   push:
-    branches: [master]
+    branches: [main]
 
 jobs:
   deploy:
@@ -15,5 +15,5 @@ jobs:
         username: ubuntu
         key: ${{ secrets.EC2_KEY }}
         script: |
-          echo "Running deploy-all.sh..."
+          echo "Running back.sh..."
           bash /home/ubuntu/back.sh
