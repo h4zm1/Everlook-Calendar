@@ -35,7 +35,5 @@ class AuthService(@Autowired val userRepo: UserRepo, @Autowired val authenticati
         // SecurityContextHolder.getContext().authentication = authentication
 
         return user
-//        return userRepo.findByEmail(input.username)
-//            ?.orElseThrow()!!
     }
 }

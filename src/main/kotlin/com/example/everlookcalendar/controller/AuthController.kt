@@ -18,6 +18,7 @@ import org.springframework.http.MediaType
 import org.springframework.http.ResponseCookie
 import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize
+import org.springframework.security.authentication.BadCredentialsException
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
 import org.springframework.security.core.userdetails.UserDetails
 import org.springframework.security.core.userdetails.UserDetailsService
@@ -45,7 +46,17 @@ class AuthController(
     @PostMapping("/login")
     fun login(@RequestBody user: UserCred): ResponseEntity<Any> {
         println("inside login-2")
-        val authenticatedUser: UserCred = authService.authenticate(user)
+        val authenticatedUser: UserCred = try {
+            authService.authenticate(user)
+        }catch (e: BadCredentialsException){
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+            .contentType(MediaType.APPLICATION_JSON)
+                .body(mapOf(
+                    "error" to "Invalid email or password",
+                    "errorCode" to "BAD_CREDENTIALS",
+                    "type" to "authentication"
+                ))
+        }
         // check role
         if (authenticatedUser.authorities.first().authority == "ROLE_USER") {
             println("USER tried to log in")
