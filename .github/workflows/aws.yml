@@ -8,7 +8,7 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
-    - name: Deploy using smart deploy-all script
+    - name: Deploy script
       uses: appleboy/ssh-action@master
       with:
         host: ${{ secrets.EC2_HOST }}
@@ -16,4 +16,4 @@ jobs:
         key: ${{ secrets.EC2_KEY }}
         script: |
           echo "Running deploy-all.sh..."
-          bash /home/ubuntu/deploy-all.sh
+          bash /home/ubuntu/back.sh
