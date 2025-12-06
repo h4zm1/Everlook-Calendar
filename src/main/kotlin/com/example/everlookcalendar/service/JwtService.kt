@@ -45,7 +45,7 @@ class JwtService {
 
     fun generateJwtCookie(user: UserCred): ResponseCookie {
         val jwt = generateToken(user)
-        println("jwt expiration:::: "+extractExpiration(jwt))
+        //println("jwt expiration:::: "+extractExpiration(jwt))
         return generateCookie("jwt", jwt, "/", expirationTime.toLong())
     }
 

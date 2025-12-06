@@ -67,7 +67,9 @@ class RaidController(
         sseEmitter.send(
             SseEmitter.event().name("message").data(currentTime.format(formatter), MediaType.TEXT_EVENT_STREAM)
         )
-        sseEmitter.onError { println("error") }
+        sseEmitter.onError {
+            //println("error")
+        }
         sseEmitter.onTimeout {
             sseEmitter.complete()
         }
@@ -98,12 +100,12 @@ class RaidController(
 //        if (startDateFromDb == null) {
 //            startDateFromDb = StartDate(date = LocalDate.now().toString())
 //            startDateRepo.save(startDateFromDb)
-////            println("startDateFromDb is ${startDateFromDb.date}")
+////            //println("startDateFromDb is ${startDateFromDb.date}")
 //        }
 //        twentyDateRepo.findAll().first()
 //        var dayCounter2 = LocalDate.parse(startDateFromDb.date)
-        println("startDateFromDb is ${startDateFromDb}")
-//        println("startDateFromDb REAL is "+ dayCounter2)
+        //println("startDateFromDb is ${startDateFromDb}")
+//        //println("startDateFromDb REAL is "+ dayCounter2)
 
         val eventList = mutableListOf<Event>()
         var days = 90
@@ -135,7 +137,7 @@ class RaidController(
         ""
 
         while (true) {
-            println("***************************************")
+            //println("***************************************")
             val event = Event()
             val dmfEvent = Event()
             val madnessEvent = Event()
@@ -213,10 +215,10 @@ class RaidController(
                 event.aq20 = 1
                 // 5 days interval
                 m20ResetDate = dayCounter.plusDays(3)
-                println(m20ResetDate.dayOfMonth.toString() + "inside M20 " + dayCounter.dayOfMonth)
+                //println(m20ResetDate.dayOfMonth.toString() + "inside M20 " + dayCounter.dayOfMonth)
             }
             if (m20ResetDate.dayOfMonth == dayCounter.dayOfMonth && foundM20) { // apparently straight up comparing doesn't work? so had to do .dayOfMonth
-                println("inside M20")
+                //println("inside M20")
                 eventUp = true
                 raidUp = true
                 event.zg = 1
@@ -233,7 +235,7 @@ class RaidController(
                 onyResetDate = dayCounter.plusDays(5)
             }
             if (onyResetDate.dayOfMonth == dayCounter.dayOfMonth && foundOny) { // apparently straight up comparing doesn't work? so had to do .dayOfMonth
-                println("inside M20")
+                //println("inside M20")
                 eventUp = true
                 raidUp = true
                 event.ony = 1
@@ -258,7 +260,7 @@ class RaidController(
 
             //  since this resets every 7 days we can just set the exact day
             if (config.m40.equals(dayName.take(2), ignoreCase = true)) {
-                println("inside M40")
+                //println("inside M40")
                 eventUp = true
                 raidUp = true
                 event.mc = 1
@@ -308,8 +310,8 @@ class RaidController(
             eventUp = false
             raidUp = false
 
-            println(dayName + "daycounter " + dayCounter)
-            println("evenlist " + eventList.size)
+            //println(dayName + "daycounter " + dayCounter)
+            //println("evenlist " + eventList.size)
 
 
             // daycounter is how we track what day the loop is at
@@ -317,7 +319,7 @@ class RaidController(
             // days = 90 so the loop will stop after 90 cycles
             // and the countdown only start ticking after reaching the starting date
 //            if (registeringEvents) {
-//            println("day "+ (90-days))
+//            //println("day "+ (90-days))
 
             days--
             if (days == 0)

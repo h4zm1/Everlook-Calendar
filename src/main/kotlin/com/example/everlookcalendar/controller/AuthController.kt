@@ -45,7 +45,7 @@ class AuthController(
 
     @PostMapping("/login")
     fun login(@RequestBody user: UserCred): ResponseEntity<Any> {
-        println("inside login-2")
+        //println("inside login-2")
         val authenticatedUser: UserCred = try {
             authService.authenticate(user)
         }catch (e: BadCredentialsException){
@@ -59,7 +59,7 @@ class AuthController(
         }
         // check role
         if (authenticatedUser.authorities.first().authority == "ROLE_USER") {
-            println("USER tried to log in")
+            //println("USER tried to log in")
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                 .contentType(MediaType.APPLICATION_JSON)
                 .body(mapOf(
@@ -68,21 +68,21 @@ class AuthController(
                     "type" to "authorization"
                 ))
         }
-        println("inside login-1")
+        //println("inside login-1")
         val jwtCookie = jwtService.generateJwtCookie(authenticatedUser)
         // can't call transactional method from same class, so I had to do it here
         // making sure all previous refresh tokens are deleted upon login
-        println("inside login0")
+        //println("inside login0")
         refreshTokenService.deleteByUserId(authenticatedUser.id)
-        println("inside login1")
+        //println("inside login1")
 
         val refreshToken = refreshTokenService.createRefreshToken(authenticatedUser.id)
-        println("inside login2")
+        //println("inside login2")
 
         val jwtRefreshCookie = jwtService.generateRefreshJwtCookie(refreshToken.token)
-        println("inside login3")
+        //println("inside login3")
 
-        println("login mail " + user.username + " role " + authenticatedUser.authorities)
+        //println("login mail " + user.username + " role " + authenticatedUser.authorities)
         val data = mapOf(
 //            "token" to jwt  for Token,
 //            "expiresIn" to jwtService.expirationTime
@@ -107,7 +107,7 @@ class AuthController(
 
     @PostMapping("/refreshtoken")
     fun refreshToken(request: HttpServletRequest): ResponseEntity<*> {
-        println("INSIDE REFRESH")
+        //println("INSIDE REFRESH")
         // ?: = if null
         val refreshToken = jwtService.getJwtRefreshFromCookies(request) ?: return ResponseEntity.badRequest()
             .body("Refresh Token is empty!")
@@ -119,8 +119,8 @@ class AuthController(
         val verifiedToken = refreshTokenService.verifyExpiration(storedRefreshToken.get())
 
         val jwtCookie = jwtService.generateJwtCookie(verifiedToken.user)
-        println("jwt cookie info::::: age " + jwtCookie.maxAge)
-//        println("jwt cookie info::::: "+jwtService.getJ)
+        //println("jwt cookie info::::: age " + jwtCookie.maxAge)
+//        //println("jwt cookie info::::: "+jwtService.getJ)
 
         return ResponseEntity.ok().header(HttpHeaders.SET_COOKIE, jwtCookie.toString())
             .body("Token is refreshed successfully!")
@@ -131,7 +131,7 @@ class AuthController(
     @PreAuthorize("hasAuthority('ROLE_ADMIN') or hasAuthority('ROLE_GUEST')")
     @GetMapping("/status")
     fun checkAuthStatus(request: HttpServletRequest): ResponseEntity<Any> {
-        println("INSIDE STATUS")
+        //println("INSIDE STATUS")
         val jwtFromCookie = jwtService.getJwtFromCookies(request)
 //        val data = mapOf(
 //            "status" to !jwtFromCookie.isNullOrBlank(),

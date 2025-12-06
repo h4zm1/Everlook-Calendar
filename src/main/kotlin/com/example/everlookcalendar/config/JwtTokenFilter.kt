@@ -23,8 +23,8 @@ class JwtTokenFilter(
         var userEmail = "";
         var jwtToken = "";
         var path = request.requestURI
-        println("*****************FILTER***********")
-        println("FILTER URL "+path)
+        //println("*****************FILTER***********")
+        //println("FILTER URL "+path)
 
         if (path.contains("/login") || path.contains("/register")) {
             chain.doFilter(request, response)
@@ -32,18 +32,18 @@ class JwtTokenFilter(
         }
         // try and get jwt from cookie, .toString to work around the null check
         jwtToken = jwtService.getJwtFromCookies(request).toString()
-        println("JWT><TOEKN: " + jwtToken);
+        //println("JWT><TOEKN: " + jwtToken);
         if (jwtToken.isNotEmpty() && jwtService.validateJwtToken(jwtToken)) {
             try {
                 userEmail = jwtService.extractUsername(jwtToken)
-                println("Extracting username from token: $userEmail")
+                //println("Extracting username from token: $userEmail")
 
                 // set the JWT in the request attributes for Spring Security to use
                 request.setAttribute("Authorization", "Bearer $jwtToken")
 
             } catch (e: Exception) {
                 // handle token extraction/validation errors
-                println("Error extracting username from token:" + e.message)
+                //println("Error extracting username from token:" + e.message)
             }
         }
 

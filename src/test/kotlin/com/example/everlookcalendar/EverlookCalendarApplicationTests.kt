@@ -25,16 +25,16 @@ class EverlookCalendarApplicationTests(@Autowired private val service: EventServ
             // We pick and save first ZG date,
             if (firstDateInList == null) {
                 if (event.zg == 1) {
-                    println("1" + event.id)
+                    //println("1" + event.id)
                     firstDateInList = eventDate
                 }
             }
             // then see the difference between it and the next zg date
             else {
                 if (event.zg == 1) {
-                    println("2" + event.id)
+                    //println("2" + event.id)
                     val dayDifference = eventDate.toEpochDay() - firstDateInList.toEpochDay()
-                    println("date difference " + dayDifference)
+                    //println("date difference " + dayDifference)
                     firstDateInList = eventDate
                     assertThat(dayDifference).isEqualTo(3)
                 }

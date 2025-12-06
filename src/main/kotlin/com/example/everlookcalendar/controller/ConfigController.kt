@@ -47,7 +47,7 @@ class ConfigController(
     @PreAuthorize("hasAuthority('ROLE_GUEST')")
     @PostMapping("/testAuth")
     fun testAuth(@RequestBody data: String): String {
-        println("AUTHORIZED " + data)
+        //println("AUTHORIZED " + data)
         return data
     }
 
@@ -55,7 +55,7 @@ class ConfigController(
     @PreAuthorize("hasAuthority('ROLE_ADMIN')")
     @PostMapping("/updateConfig")
     fun updateConfig(@RequestBody configvalues: ConfigValues): ResponseEntity<Any> {
-        println("UPDATED CONFIG " + configvalues)
+        //println("UPDATED CONFIG " + configvalues)
         configRepo.deleteAll()
         configRepo.save(configvalues)
 
@@ -65,7 +65,7 @@ class ConfigController(
     @PreAuthorize("hasAnyRole('ADMIN','GUEST')")
     @GetMapping("/getConfig")
     fun getConfig(): ConfigValues {
-        println("loading config")
+        //println("loading config")
         val config = configRepo.findFirstBy()
         return config
     }
@@ -106,7 +106,7 @@ class ConfigController(
     @PreAuthorize("hasAuthority('ROLE_ADMIN')")
     @PostMapping("/setRole")
     fun updateRole(@RequestBody vettedUser: userToVet): ResponseEntity<Any> {
-        println("UPDATED user role " + vettedUser.email + " to " + vettedUser.role)
+        //println("UPDATED user role " + vettedUser.email + " to " + vettedUser.role)
         // the ground work were meant for a user to have more than one role but had to scale down.
         // find user
         val user = userRepo.findById(vettedUser.id).orElseThrow { RuntimeException("User not found!") }
