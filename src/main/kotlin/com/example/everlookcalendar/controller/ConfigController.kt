@@ -105,8 +105,8 @@ class ConfigController(
 
     @PreAuthorize("hasAuthority('ROLE_ADMIN')")
     @PostMapping("/setRole")
-    fun updateRole(@RequestBody vettedUser: userToVet): ResponseEntity<Any> {
-        //println("UPDATED user role " + vettedUser.email + " to " + vettedUser.role)
+    fun updateRole(@RequestBody vettedUser: userToVet): ResponseEntity<String> {
+//        println("UPDATED user role " + vettedUser.email + " to " + vettedUser.role)
         // the ground work were meant for a user to have more than one role but had to scale down.
         // find user
         val user = userRepo.findById(vettedUser.id).orElseThrow { RuntimeException("User not found!") }
@@ -119,7 +119,8 @@ class ConfigController(
         // save new role to user
         authRepo.save(UserAuthority(user, newRole))
         if (vettedUser.role == "ROLE_GUEST" || vettedUser.role == "ROLE_ADMIN")
-            emailService.sendMail(vettedUser.email)
+            return emailService.sendMail(vettedUser.email)
+        else
         return ResponseEntity.ok("config updated successfully")
     }
 
