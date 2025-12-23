@@ -2,7 +2,7 @@
 
 [wow-events](https://hazmimosbah.com/wow-events/)
 
-New:
+<img src="https://i.imgur.com/qEVSXzp.png">
 This's to help me and others on Twow to easily check raid reset times and pvp weekends.
 It started with using [mustache](https://mustache.github.io/) to transform json request responses into [htmx](https://github.com/bigskysoftware/htmx) via a client-side template before it is swapped into the DOM.
 And hosted on Render with a docker container while using Supabase's Postgres.
