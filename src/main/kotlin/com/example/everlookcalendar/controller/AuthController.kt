@@ -1,5 +1,6 @@
 package com.example.everlookcalendar.controller
 
+import com.example.everlookcalendar.config.RateLimiter
 import com.example.everlookcalendar.data.RefreshToken
 import com.example.everlookcalendar.data.UserAuthority
 import com.example.everlookcalendar.data.UserCred
@@ -39,16 +40,29 @@ class AuthController(
     @Autowired val jwtService: JwtService,
     @Autowired val refreshTokenService: RefreshTokenService,
     @Autowired val userDetailsService: UserDetailsService,
+    val rateLimier: RateLimiter,
     private val passwordEncoder: BCryptPasswordEncoder,
     private val authRepo: AuthRepo
 ) {
 
     @PostMapping("/login")
-    fun login(@RequestBody user: UserCred): ResponseEntity<Any> {
-        //println("inside login-2")
+    fun login(@RequestBody user: UserCred, request: HttpServletRequest): ResponseEntity<Any> {
+
+        val ipAddr = request.remoteAddr
+        // check if blocked
+        if(rateLimier.isBlocked(ipAddr)) {
+            return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS)
+                .body(mapOf(
+                    "error" to "Too many attempts, Try again later.",
+                    "errorCode" to "MANY_ATTEMPTS"
+                ))
+        }
+
         val authenticatedUser: UserCred = try {
             authService.authenticate(user)
+
         }catch (e: BadCredentialsException){
+            rateLimier.registerAttempt(ipAddr)  // increment on failure
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
             .contentType(MediaType.APPLICATION_JSON)
                 .body(mapOf(
@@ -57,6 +71,8 @@ class AuthController(
                     "type" to "authentication"
                 ))
         }
+        // reset login attempts on success
+        rateLimier.resetAttempts(ipAddr)
         // check role
         if (authenticatedUser.authorities.first().authority == "ROLE_USER") {
             //println("USER tried to log in")

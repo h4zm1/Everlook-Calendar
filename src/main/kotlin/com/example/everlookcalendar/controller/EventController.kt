@@ -111,7 +111,7 @@ class RaidController(
         var days = 90
 
 
-        var dayCounter = LocalDate.parse(startDateFromDb)
+        var dayCounter = LocalDate.parse(startDateFromDb.take(10))
         var m20ResetDate = LocalDate.now()  // temp value just for init, will get replaced with actual reset date
         var onyResetDate = LocalDate.now()  // temp value just for init, will get replaced with actual reset date
         var madnessReset = LocalDate.now()  // temp value just for init, will get replaced with actual reset date
@@ -366,7 +366,8 @@ class RaidController(
         val currentDate = LocalDate.now()
 //        val eventList: List<Event> = service.getAllEvents().sortedBy { it.date }
         val eventList = generateEvents().sortedBy { it.date }
-
+//        val eventList = mutableListOf<Event>()
+//return eventList
         for (event in eventList) {
             event.id = idCounter++
             // Decoding pvp string only when their value is default
