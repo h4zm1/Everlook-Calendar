@@ -4,8 +4,12 @@ import com.example.everlookcalendar.data.Event
 import com.example.everlookcalendar.data.StartDate
 import com.example.everlookcalendar.repository.ConfigRepo
 import com.example.everlookcalendar.repository.StartDateRepo
+import jakarta.servlet.http.HttpServletRequest
+import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
+import org.springframework.http.ResponseEntity
 import org.springframework.scheduling.annotation.EnableScheduling
 import org.springframework.stereotype.Controller
 import org.springframework.ui.Model
@@ -19,6 +23,10 @@ import java.time.LocalTime
 import java.time.format.DateTimeFormatter
 import java.time.format.TextStyle
 import java.util.*
+import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.Executors
+import java.util.concurrent.TimeUnit
+import java.util.concurrent.atomic.AtomicInteger
 
 
 @Controller
@@ -58,22 +66,55 @@ class RaidController(
     @Autowired private val startDateRepo: StartDateRepo,
     private val configRepo: ConfigRepo
 ) {
+    private val logger = LoggerFactory.getLogger(javaClass)
+    // track active connections per ip
+    private val activeConnections = ConcurrentHashMap<String, AtomicInteger>()
+    // and limit only to 2 connection per ip
+    private val maxConnectionsPerIP = 2
+
     @GetMapping("/api/time", produces = [MediaType.TEXT_EVENT_STREAM_VALUE])
-    fun getOrderStatus(): SseEmitter {
-//        val currentTime = LocalTime.now().minusHours(1)
-        val currentTime = LocalTime.now()
+    fun getServerTime(request: HttpServletRequest): ResponseEntity<SseEmitter> {
+        val userKey = request.remoteAddr
+        val userConnections = activeConnections.computeIfAbsent(userKey) { AtomicInteger(0) }
+
+        // manual rate limiting
+        // ckeck if user has too many active connections
+        if (userConnections.get() >= maxConnectionsPerIP) {
+            return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS).build()
+        }
+
+        // increment active connections
+        userConnections.incrementAndGet()
+
         val formatter = DateTimeFormatter.ofPattern("hh:mm a")
-        val sseEmitter = SseEmitter()
-        sseEmitter.send(
-            SseEmitter.event().name("message").data(currentTime.format(formatter), MediaType.TEXT_EVENT_STREAM)
-        )
-        sseEmitter.onError {
-            //println("error")
+        // 0L will prevent connect from timing out
+        val sseEmitter = SseEmitter(0L)
+        val executor = Executors.newSingleThreadScheduledExecutor()
+
+        // this will keep the connectio alive and emitting every 1 minute
+        executor.scheduleWithFixedDelay({
+            try {
+                sseEmitter.send(
+                    SseEmitter.event()
+                        .name("message")
+                        .data(LocalTime.now().format(formatter), MediaType.TEXT_EVENT_STREAM)
+                )
+            } catch (e: Exception) {
+                executor.shutdown()
+                sseEmitter.complete()
+            }
+        }, 0, 1, TimeUnit.MINUTES)
+
+        // decrement when connection closes
+        val cleanup = {
+            userConnections.decrementAndGet()
+            executor.shutdown()
         }
-        sseEmitter.onTimeout {
-            sseEmitter.complete()
-        }
-        return sseEmitter
+        sseEmitter.onCompletion(cleanup)
+        sseEmitter.onError { cleanup() }
+        sseEmitter.onTimeout { cleanup() }
+
+        return ResponseEntity.ok(sseEmitter)
     }
 
     enum class Madness {
@@ -116,7 +157,6 @@ class RaidController(
         var onyResetDate = LocalDate.now()  // temp value just for init, will get replaced with actual reset date
         var madnessReset = LocalDate.now()  // temp value just for init, will get replaced with actual reset date
         var k10ResetDate = LocalDate.now()
-
 
 
         var foundM20 = false // marking the first occurrence of aq20/zg reset day
@@ -184,7 +224,7 @@ class RaidController(
             }
             if (tempDayHolderForDMF == dayName && foundDmf) {
                 eventUp = true
-                dmfEvent.dmf = if(dmfInMulgor) "mulgore" else "elwynn"
+                dmfEvent.dmf = if (dmfInMulgor) "mulgore" else "elwynn"
                 dmfInMulgor = !dmfInMulgor
             }
 
@@ -243,7 +283,7 @@ class RaidController(
             }
 
             // for k10
-            if(config.k10.equals(dayName.take(2), ignoreCase = true) && !foundK10) {
+            if (config.k10.equals(dayName.take(2), ignoreCase = true) && !foundK10) {
                 foundK10 = true;
                 eventUp = true
                 raidUp = true
@@ -251,7 +291,7 @@ class RaidController(
                 // 5 days interval
                 k10ResetDate = dayCounter.plusDays(5)
             }
-            if(k10ResetDate.dayOfMonth == dayCounter.dayOfMonth && foundK10) {
+            if (k10ResetDate.dayOfMonth == dayCounter.dayOfMonth && foundK10) {
                 eventUp = true
                 raidUp = true
                 event.k10 = 1
@@ -385,10 +425,10 @@ class RaidController(
 
             // Setting up dmf
             if (event.dmf.length > 2) {
-                    if (event.dmf.contains("mulgore"))
-                        event.dmf = "Darkmoon Faire - Mulgore"
-                    else if (event.dmf.contains("elwynn"))
-                        event.dmf = "Darkmoon Faire - Elwynn Forest"
+                if (event.dmf.contains("mulgore"))
+                    event.dmf = "Darkmoon Faire - Mulgore"
+                else if (event.dmf.contains("elwynn"))
+                    event.dmf = "Darkmoon Faire - Elwynn Forest"
                 else
                     event.dmf = "DMF moving out"
             }

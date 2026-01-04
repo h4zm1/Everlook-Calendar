@@ -31,12 +31,14 @@ dependencies {
     implementation("io.jsonwebtoken:jjwt-api:0.12.5")
     implementation("com.sun.xml.security:xml-security-impl:1.0")
     implementation("org.postgresql:postgresql:42.7.7")
+    implementation("com.bucket4j:bucket4j-core:8.7.0")
 
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.5.1")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-reactor")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-reactive")
     implementation("org.springframework.boot:spring-boot-starter-websocket")
+    implementation("org.springframework.boot:spring-boot-starter-actuator")
 
     runtimeOnly("org.postgresql:postgresql")
     runtimeOnly("io.jsonwebtoken:jjwt-impl:0.12.5")
@@ -49,6 +51,7 @@ dependencies {
     implementation("org.springframework.security:spring-security-core")
     implementation("org.springframework.security:spring-security-config")
     testImplementation("org.springframework.boot:spring-boot-starter-test")
+    testImplementation("org.springframework.security:spring-security-test")
     implementation("org.springframework.boot:spring-boot-starter-mail")
 
 

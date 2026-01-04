@@ -29,7 +29,11 @@ class SecurityConfig(@Autowired val env: Environment, @Autowired val userRepo: U
     val allowedOriginsList = allowedOrigins?.split(",")?.map { it.trim() } ?: listOf()
 
     @Bean
-    fun filterChain(http: HttpSecurity, jwtTokenFilter: JwtTokenFilter): SecurityFilterChain {
+    fun filterChain(
+        http: HttpSecurity,
+        jwtTokenFilter: JwtTokenFilter,
+        rateLimitFilter: RateLimiterFilter
+    ): SecurityFilterChain {
         http {
             csrf {
                 disable()
@@ -52,8 +56,11 @@ class SecurityConfig(@Autowired val env: Environment, @Autowired val userRepo: U
                 authorize("/conf/testAuth", authenticated)
                 authorize("/conf/updateTwentyMan", authenticated)
             }
+
             // handling processing incoming requests for token verification
             addFilterBefore(jwtTokenFilter, UsernamePasswordAuthenticationFilter::class.java)
+            // ratelimit filter happen after any authentication logic (for auth work to work)
+            addFilterAfter(rateLimitFilter, JwtTokenFilter::class.java)
             headers {
 
             }
@@ -78,10 +85,10 @@ class SecurityConfig(@Autowired val env: Environment, @Autowired val userRepo: U
     @Bean
     fun userDetailsService(): UserDetailsService {
         return UserDetailsService { username: String? ->
-            userRepo.findByEmail(username)?.
-            orElseThrow { UsernameNotFoundException("User not found") }
+            userRepo.findByEmail(username)?.orElseThrow { UsernameNotFoundException("User not found") }
         }
     }
+
     @Bean
     fun passwordEncoder(): BCryptPasswordEncoder {
         return BCryptPasswordEncoder()

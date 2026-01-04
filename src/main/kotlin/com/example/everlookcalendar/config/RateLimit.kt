@@ -4,7 +4,7 @@ import org.springframework.stereotype.Component
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.AtomicInteger
 
-
+// BASIC RATE LIMITER (not using it, moved to bucket4j instead)
 @Component
 class RateLimiter {
     // preventing race conditions:

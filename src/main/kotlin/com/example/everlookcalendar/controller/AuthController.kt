@@ -1,7 +1,5 @@
 package com.example.everlookcalendar.controller
 
-import com.example.everlookcalendar.config.RateLimiter
-import com.example.everlookcalendar.data.RefreshToken
 import com.example.everlookcalendar.data.UserAuthority
 import com.example.everlookcalendar.data.UserCred
 import com.example.everlookcalendar.repository.AuthRepo
@@ -13,22 +11,12 @@ import com.example.everlookcalendar.service.RefreshTokenService
 import com.example.everlookcalendar.service.TokenRefreshException
 import jakarta.servlet.http.HttpServletRequest
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.http.HttpHeaders
-import org.springframework.http.HttpStatus
-import org.springframework.http.MediaType
-import org.springframework.http.ResponseCookie
-import org.springframework.http.ResponseEntity
+import org.springframework.http.*
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.security.authentication.BadCredentialsException
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
-import org.springframework.security.core.userdetails.UserDetails
 import org.springframework.security.core.userdetails.UserDetailsService
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder
-import org.springframework.web.bind.annotation.GetMapping
-import org.springframework.web.bind.annotation.PostMapping
-import org.springframework.web.bind.annotation.RequestBody
-import org.springframework.web.bind.annotation.RequestMapping
-import org.springframework.web.bind.annotation.RestController
+import org.springframework.web.bind.annotation.*
 
 
 @RestController
@@ -40,7 +28,6 @@ class AuthController(
     @Autowired val jwtService: JwtService,
     @Autowired val refreshTokenService: RefreshTokenService,
     @Autowired val userDetailsService: UserDetailsService,
-    val rateLimier: RateLimiter,
     private val passwordEncoder: BCryptPasswordEncoder,
     private val authRepo: AuthRepo
 ) {
@@ -48,55 +35,40 @@ class AuthController(
     @PostMapping("/login")
     fun login(@RequestBody user: UserCred, request: HttpServletRequest): ResponseEntity<Any> {
 
-        val ipAddr = request.remoteAddr
-        // check if blocked
-        if(rateLimier.isBlocked(ipAddr)) {
-            return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS)
-                .body(mapOf(
-                    "error" to "Too many attempts, Try again later.",
-                    "errorCode" to "MANY_ATTEMPTS"
-                ))
-        }
-
         val authenticatedUser: UserCred = try {
             authService.authenticate(user)
-
-        }catch (e: BadCredentialsException){
-            rateLimier.registerAttempt(ipAddr)  // increment on failure
+        } catch (e: BadCredentialsException) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-            .contentType(MediaType.APPLICATION_JSON)
-                .body(mapOf(
-                    "error" to "Invalid email or password",
-                    "errorCode" to "BAD_CREDENTIALS",
-                    "type" to "authentication"
-                ))
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(
+                    mapOf(
+                        "error" to "Invalid email or password",
+                        "errorCode" to "BAD_CREDENTIALS",
+                        "type" to "authentication"
+                    )
+                )
         }
-        // reset login attempts on success
-        rateLimier.resetAttempts(ipAddr)
         // check role
         if (authenticatedUser.authorities.first().authority == "ROLE_USER") {
             //println("USER tried to log in")
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                 .contentType(MediaType.APPLICATION_JSON)
-                .body(mapOf(
-                    "error" to "You don't have access yet. Wait for an email confirmation.",
-                    "errorCode" to "ROLE_RESTRICTED",
-                    "type" to "authorization"
-                ))
+                .body(
+                    mapOf(
+                        "error" to "You don't have access yet. Wait for an email confirmation.",
+                        "errorCode" to "ROLE_RESTRICTED",
+                        "type" to "authorization"
+                    )
+                )
         }
-        //println("inside login-1")
         val jwtCookie = jwtService.generateJwtCookie(authenticatedUser)
         // can't call transactional method from same class, so I had to do it here
         // making sure all previous refresh tokens are deleted upon login
-        //println("inside login0")
         refreshTokenService.deleteByUserId(authenticatedUser.id)
-        //println("inside login1")
 
         val refreshToken = refreshTokenService.createRefreshToken(authenticatedUser.id)
-        //println("inside login2")
 
         val jwtRefreshCookie = jwtService.generateRefreshJwtCookie(refreshToken.token)
-        //println("inside login3")
 
         //println("login mail " + user.username + " role " + authenticatedUser.authorities)
         val data = mapOf(
