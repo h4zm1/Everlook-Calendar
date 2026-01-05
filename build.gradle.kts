@@ -32,6 +32,7 @@ dependencies {
     implementation("com.sun.xml.security:xml-security-impl:1.0")
     implementation("org.postgresql:postgresql:42.7.7")
     implementation("com.bucket4j:bucket4j-core:8.7.0")
+    implementation("com.github.ben-manes.caffeine:caffeine:3.1.8")
 
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.5.1")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core")

@@ -7,6 +7,7 @@ import com.example.everlookcalendar.repository.StartDateRepo
 import jakarta.servlet.http.HttpServletRequest
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.cache.annotation.Cacheable
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
@@ -370,6 +371,7 @@ class RaidController(
     }
 
     @GetMapping("/api/zgboss")
+    @Cacheable(value = ["zgboss"])
     fun getZgBoss(): String {
         var boss = ""
         val currentDate = LocalDate.now()
@@ -399,15 +401,15 @@ class RaidController(
 
 
     @GetMapping("/api/events")
-//    @HxRequest // Prevent getting called from url directly
+    @Cacheable(value = ["events"], key = "T(java.time.LocalDate).now().toString()")
     fun getEvents(): List<Event> {
+        logger.info("cache MISS - generating events")  // this should only appear on cached generation
         var changeAll = false
         var idCounter = -1
         val currentDate = LocalDate.now()
 //        val eventList: List<Event> = service.getAllEvents().sortedBy { it.date }
         val eventList = generateEvents().sortedBy { it.date }
-//        val eventList = mutableListOf<Event>()
-//return eventList
+
         for (event in eventList) {
             event.id = idCounter++
             // Decoding pvp string only when their value is default
