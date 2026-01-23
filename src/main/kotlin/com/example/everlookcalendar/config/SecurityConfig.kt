@@ -55,6 +55,7 @@ class SecurityConfig(@Autowired val env: Environment, @Autowired val userRepo: U
                 authorize("/conf/setToggle", authenticated)
                 authorize("/conf/testAuth", authenticated)
                 authorize("/conf/updateTwentyMan", authenticated)
+                authorize("/actuator/**", hasAuthority("ROLE_ADMIN"))
             }
 
             // handling processing incoming requests for token verification

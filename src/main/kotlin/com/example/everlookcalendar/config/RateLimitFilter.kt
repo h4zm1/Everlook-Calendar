@@ -36,7 +36,8 @@ class RateLimiterFilter : OncePerRequestFilter() {
                 path.endsWith(".css") ||
                 path.endsWith(".js") ||
                 path.endsWith(".png") ||
-                path.endsWith(".ico")
+                path.endsWith(".ico") ||
+                path.startsWith("/actuator")
     }
 
     override fun doFilterInternal(
